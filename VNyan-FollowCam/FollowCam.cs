@@ -59,7 +59,7 @@ namespace VNyan_FollowCam {
 
                 switch (Settings.OffsetMode) {
                     case CameraPosMode.Off:
-                        Persist.Pos = Camera.main.transform.position;
+                        Persist.Pos = Settings.OffsetPosition;
                         break;
                     case CameraPosMode.Absolute:
                         Persist.Pos = BonePos + Settings.OffsetPosition;

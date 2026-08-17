@@ -39,12 +39,14 @@ namespace VNyan_FollowCam {
                         return;
                     }
                     switch (name) {
-                        case "_enable":
-                            FollowCam.SetActive(true);
-                            break;
-                        case "_disable":
-                            FollowCam.SetActive(false);
-                            break;
+                        case "_enable": FollowCam.SetActive(true); break;
+                        case "_disable": FollowCam.SetActive(false); break;
+                        case "_offsetoff": Settings.OffsetMode = CameraPosMode.Off; break;
+                        case "_offsetabs": Settings.OffsetMode = CameraPosMode.Absolute; break;
+                        case "_offsetrel": Settings.OffsetMode = CameraPosMode.Relative; break;
+                        case "_rotationoff": Settings.RotationMode = CameraPosMode.Off; break;
+                        case "_rotationabs": Settings.RotationMode = CameraPosMode.Absolute; break;
+                        case "_rotationrel": Settings.RotationMode = CameraPosMode.Relative; break;
                         case "_load":
                             if (File.Exists(text1)) {
                                 SettingsFile.Load(text1);
