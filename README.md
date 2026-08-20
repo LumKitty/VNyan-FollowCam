@@ -11,6 +11,7 @@ Absolute = Camera will follow you around, but ignore your rotation, so will alwa
 Relative = Camera will follow you around, taking rotation into consideration. Use this if you always want a front view, or behind view  
 Lerp: Increasing this will make the camera move faster in response to movements  
 Min threshold: Movements below this value will cause no movement at all. Use this to prevent minor hip wiggles from moving the camera  
+Static: This axis will ignore wherever the bone is and be relative to zero instead (i.e. between your feet). Recommended for the Y axis to reduce shaking
 
 Look at bone:
 The camera will always look at the selected bone, adjusted by the x/y/z values - A common use would be to look at hips + Z:1m to give
