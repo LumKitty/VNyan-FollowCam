@@ -23,6 +23,9 @@ namespace VNyan_FollowCam {
         public float Offset_X { get { return OffsetPosition.x; } set { OffsetPosition.x = value; } }
         public float Offset_Y { get { return OffsetPosition.y; } set { OffsetPosition.y = value; } }
         public float Offset_Z { get { return OffsetPosition.z; } set { OffsetPosition.z = value; } }
+        public bool StaticX;
+        public bool StaticY;
+        public bool StaticZ;
         public CameraPosMode OffsetMode = CameraPosMode.Relative;
 
         public float MaxMovementDistance;
@@ -32,6 +35,9 @@ namespace VNyan_FollowCam {
         public float LookAtOffset_X { get { return LookAtOffsetPosition.x; } set { LookAtOffsetPosition.x = value; } }
         public float LookAtOffset_Y { get { return LookAtOffsetPosition.y; } set { LookAtOffsetPosition.y = value; } }
         public float LookAtOffset_Z { get { return LookAtOffsetPosition.z; } set { LookAtOffsetPosition.z = value; } }
+        public bool LookAtStaticX;
+        public bool LookAtStaticY;
+        public bool LookAtStaticZ;
         public CameraPosMode RotationMode = CameraPosMode.Relative;
 
         public float MaxRotation;
@@ -48,7 +54,8 @@ namespace VNyan_FollowCam {
             try {
                 if (File.Exists(FileName)) {
                     VNyan_Handlers.Log($"Loading {FileName}");
-                    _Settings.Settings = JsonConvert.DeserializeObject<__Settings>(File.ReadAllText(FileName));
+                    __Settings? TempSettings = JsonConvert.DeserializeObject<__Settings>(File.ReadAllText(FileName));
+                    if (TempSettings != null) _Settings.Settings = TempSettings;
                 } else {
                     VNyan_Handlers.Log($"Could not find {FileName}");
                 }

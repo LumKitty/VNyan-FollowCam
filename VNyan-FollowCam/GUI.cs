@@ -18,17 +18,17 @@ namespace VNyan_FollowCam {
         internal static int BoneSelector = 0;
 
 
-        internal string OffsetX;
-        internal string OffsetY;
-        internal string OffsetZ;
-        internal string OffsetLerp;
-        internal string OffsetMin;
+        internal string OffsetX = "";
+        internal string OffsetY = "";
+        internal string OffsetZ = "";
+        internal string OffsetLerp = "";
+        internal string OffsetMin = "";
 
-        internal string LookAtOffsetX;
-        internal string LookAtOffsetY;
-        internal string LookAtOffsetZ;
-        internal string LookAtLerp;
-        internal string LookAtMin;
+        internal string LookAtOffsetX = "";
+        internal string LookAtOffsetY = "";
+        internal string LookAtOffsetZ = "";
+        internal string LookAtLerp = "";
+        internal string LookAtMin = "";
 
         private readonly HumanBodyBones[] BoneSelectorList = {
             HumanBodyBones.Hips,
@@ -48,6 +48,7 @@ namespace VNyan_FollowCam {
         void OnEnable() {
             BoneSelector = 0;
             ReloadTempStrings();
+            VNyanInterface.VNyanInterface.VNyanTrigger.callTrigger(CloseTriggerName, 0, 0, 0, CloseTriggerValue, "", "");
         }
 
         void ReloadTempStrings() {
@@ -80,7 +81,6 @@ namespace VNyan_FollowCam {
             try { 
                 GUILayout.BeginArea(new Rect(Screen.width - DWidth, Screen.height - DHeight, DWidth, DHeight));
                 GUILayout.FlexibleSpace(); // Force bottom alignment
-                float TempFloat;
 
                 if (BoneSelector == 0) {
 
@@ -126,6 +126,7 @@ namespace VNyan_FollowCam {
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label($"X: ");
                                 OffsetX = FloatTextField(OffsetX, out Settings.OffsetPosition.x);
+                                Settings.StaticX = GUILayout.Toggle(Settings.StaticX, "Static");
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
@@ -134,6 +135,7 @@ namespace VNyan_FollowCam {
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label($"Y: ");
                                 OffsetY = FloatTextField(OffsetY, out Settings.OffsetPosition.y);
+                                Settings.StaticY = GUILayout.Toggle(Settings.StaticY, "Static");
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
@@ -143,6 +145,7 @@ namespace VNyan_FollowCam {
                             {
                                 GUILayout.Label($"Z: ");
                                 OffsetZ = FloatTextField(OffsetZ, out Settings.OffsetPosition.z);
+                                Settings.StaticZ = GUILayout.Toggle(Settings.StaticZ, "Static");
                                 GUILayout.FlexibleSpace();
                             } GUILayout.EndHorizontal();
                             FloatSlider(ref OffsetZ, ref Settings.OffsetPosition.z, -10, 10);
@@ -172,8 +175,9 @@ namespace VNyan_FollowCam {
                             FloatSlider(ref OffsetMin, ref Settings.MinMovementThreshold, 0, 1);
                             //Settings.MinMovementThreshold = GUILayout.HorizontalSlider(Settings.MinMovementThreshold, 0, 1);
 
-                            GUILayout.Label($"FCam: {FollowCamPersist.PrevPos.ToString()}");
+                            GUILayout.Label($"FCam: {Persist.PrevPos.ToString()}");
                             GUILayout.Label($"VCam: {Camera.main.transform.position.ToString()}");
+                            GUILayout.Label($"Trg: {Persist.TrgPos.ToString()}");
                             GUILayout.Label($"Bone: {BaseBoneTransform.position.ToString()}");
                         }
                         GUILayout.EndVertical();
@@ -187,6 +191,7 @@ namespace VNyan_FollowCam {
                             {
                                 GUILayout.Label($"X: ");
                                 LookAtOffsetX = FloatTextField(LookAtOffsetX, out Settings.LookAtOffsetPosition.x);
+                                Settings.LookAtStaticX = GUILayout.Toggle(Settings.LookAtStaticX, "Static");
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
@@ -196,6 +201,7 @@ namespace VNyan_FollowCam {
                             {
                                 GUILayout.Label($"Y: ");
                                 LookAtOffsetY = FloatTextField(LookAtOffsetY, out Settings.LookAtOffsetPosition.y);
+                                Settings.LookAtStaticY = GUILayout.Toggle(Settings.LookAtStaticY, "Static");
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
@@ -205,6 +211,7 @@ namespace VNyan_FollowCam {
                             {
                                 GUILayout.Label($"Z: ");
                                 LookAtOffsetZ = FloatTextField(LookAtOffsetZ, out Settings.LookAtOffsetPosition.z);
+                                Settings.LookAtStaticZ = GUILayout.Toggle(Settings.LookAtStaticZ, "Static");
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
@@ -237,8 +244,9 @@ namespace VNyan_FollowCam {
                             FloatSlider(ref LookAtMin, ref Settings.MinRotationThreshold, 0, 360);
                             //Settings.MinRotationThreshold = GUILayout.HorizontalSlider(Settings.MinRotationThreshold, 0, 360);
 
-                            GUILayout.Label(FollowCamPersist.PrevRot.eulerAngles.ToString());
+                            GUILayout.Label(Persist.PrevRot.eulerAngles.ToString());
                             GUILayout.Label(Camera.main.transform.rotation.eulerAngles.ToString());
+                            GUILayout.Label(Persist.LookAtTrgPos.ToString());
                             GUILayout.Label("");
                         }
                         GUILayout.EndVertical();

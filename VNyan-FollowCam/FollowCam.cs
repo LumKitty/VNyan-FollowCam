@@ -5,18 +5,19 @@ using UnityEngine;
 using static VNyan_FollowCam._Settings;
 
 namespace VNyan_FollowCam {
-    static class FollowCamPersist {
-        
-        internal static Vector3 PrevPos { get; set; } = Camera.main.transform.position;
-        internal static Quaternion PrevRot { get; set; } = Camera.main.transform.rotation;
-    }
-
     static class Persist {
-        internal static GameObject Camera = new GameObject();
-        internal static Vector3 Pos { get { return Camera.transform.position; } set { Camera.transform.position = value; } }
-        internal static Quaternion Rot { get { return Camera.transform.rotation; } set { Camera.transform.rotation = value; } }
+        internal static Vector3 TrgPos;       // For reporting in the GUI
+        internal static Vector3 LookAtTrgPos; //
+        internal static Vector3    PrevPos { get; set; } = UnityEngine.Camera.main.transform.position; // These actually need to persist
+        internal static Quaternion PrevRot { get; set; } = UnityEngine.Camera.main.transform.rotation; //
         internal static float MinMovementThreshold;
         internal static float MinRotationThreshold;
+    }
+    static class Temp {
+        internal static GameObject Camera       = new GameObject(); // Mainly to avoid creating and destroying these every frame!
+        internal static GameObject CameraLookAt = new GameObject(); //
+        //internal static Vector3    Pos { get { return Camera.transform.position; } set { Camera.transform.position = value; } } // I'm lazy
+        //internal static Quaternion Rot { get { return Camera.transform.rotation; } set { Camera.transform.rotation = value; } } //
     }
 
     [DefaultExecutionOrder(14000)]
@@ -32,8 +33,8 @@ namespace VNyan_FollowCam {
         }
 
         public void OnEnable() {
-            FollowCamPersist.PrevPos = Camera.main.transform.position;
-            FollowCamPersist.PrevRot = Camera.main.transform.rotation;
+            Persist.PrevPos = Camera.main.transform.position;
+            Persist.PrevRot = Camera.main.transform.rotation;
             Persist.MinMovementThreshold = Settings.MinMovementThreshold;
             Persist.MinRotationThreshold = Settings.MinRotationThreshold;
             VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_enabled", 1f);
@@ -52,70 +53,80 @@ namespace VNyan_FollowCam {
                 Transform BaseBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)Settings.BaseBone);
                 Transform LookAtBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)Settings.LookAtBone);
                 Vector3 BonePos = BaseBoneTransform.position;
+                Vector3 LookAtBonePos = LookAtBoneTransform.position;
                 Quaternion BoneRot = BaseBoneTransform.rotation;
 
                 float TempFloat;
                 Vector3 TempVector3;
 
+                if (Settings.StaticX) { BonePos.x = 0; }
+                if (Settings.StaticY) { BonePos.y = 0; }
+                if (Settings.StaticZ) { BonePos.z = 0; }
+                if (Settings.LookAtStaticX) { LookAtBonePos.x = 0; }
+                if (Settings.LookAtStaticY) { LookAtBonePos.y = 0; }
+                if (Settings.LookAtStaticZ) { LookAtBonePos.z = 0; }
+                Temp.CameraLookAt.transform.position = LookAtBonePos;
+
                 switch (Settings.OffsetMode) {
                     case CameraPosMode.Off:
-                        Persist.Pos = Settings.OffsetPosition;
+                        Temp.Camera.transform.position = Camera.main.transform.position;
                         break;
                     case CameraPosMode.Absolute:
-                        Persist.Pos = BonePos + Settings.OffsetPosition;
+                        Temp.Camera.transform.position = BonePos + Settings.OffsetPosition;
                         break;
                     case CameraPosMode.Relative:
-                        Persist.Pos = BonePos + (BoneRot * Settings.OffsetPosition);
+                        Temp.Camera.transform.position = BonePos + (BoneRot * Settings.OffsetPosition);
                         break;
                 }
+                Persist.TrgPos = Temp.Camera.transform.position;
                 // Handle movement distance limit
-                if ((FollowCamPersist.PrevPos - Persist.Pos).magnitude > Persist.MinMovementThreshold) {
-                    Camera.main.transform.position = Vector3.Lerp(FollowCamPersist.PrevPos, Persist.Pos, Settings.MaxMovementDistance);
-                    FollowCamPersist.PrevPos = Camera.main.transform.position;
+                if ((Persist.PrevPos - Temp.Camera.transform.position).magnitude > Persist.MinMovementThreshold) {
+                    Camera.main.transform.position = Vector3.Lerp(Persist.PrevPos, Temp.Camera.transform.position, Settings.MaxMovementDistance);
+                    Persist.PrevPos = Camera.main.transform.position;
                     Persist.MinMovementThreshold = Settings.MinMovementThreshold / 10;
                 } else {
-                    Camera.main.transform.position = FollowCamPersist.PrevPos;
+                    Camera.main.transform.position = Persist.PrevPos;
                     Persist.MinMovementThreshold = Settings.MinMovementThreshold;
                 }
-                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_camx", FollowCamPersist.PrevPos.x);
-                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_camy", FollowCamPersist.PrevPos.y);
-                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_camz", FollowCamPersist.PrevPos.z);
+                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_camx", Persist.PrevPos.x);
+                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_camy", Persist.PrevPos.y);
+                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_camz", Persist.PrevPos.z);
 
 
 
                 // Get target lookat angle
                 switch (Settings.RotationMode) {
                     case CameraPosMode.Off:
-                        Persist.Rot = Camera.main.transform.rotation;
+                        Temp.Camera.transform.rotation = Camera.main.transform.rotation;
                         break;
                     case CameraPosMode.Absolute:
-                        Persist.Pos = FollowCamPersist.PrevPos;
-                        Persist.Camera.transform.LookAt(LookAtBoneTransform);
-                        Persist.Pos += Settings.LookAtOffsetPosition;
-                        Persist.Camera.transform.LookAt(LookAtBoneTransform);
+                        //Temp.Pos = Persist.PrevPos;
+                        //Temp.Camera.transform.LookAt(Temp.CameraLookAt.transform);
+                        Temp.CameraLookAt.transform.position += Settings.LookAtOffsetPosition;
+                        Temp.Camera.transform.LookAt(Temp.CameraLookAt.transform);
                         break;
                     case CameraPosMode.Relative:
-                        Persist.Pos = FollowCamPersist.PrevPos;
-                        Persist.Camera.transform.LookAt(LookAtBoneTransform);
-                        Persist.Pos += (Persist.Rot * Settings.LookAtOffsetPosition);
-                        Persist.Camera.transform.LookAt(LookAtBoneTransform);
+                        //Temp.Pos = Persist.PrevPos;
+                        //Temp.Camera.transform.LookAt(Temp.CameraLookAt.transform);
+                        Temp.CameraLookAt.transform.position += (LookAtBoneTransform.rotation * Settings.LookAtOffsetPosition);
+                        Temp.Camera.transform.LookAt(Temp.CameraLookAt.transform);
                         break;
                 }
-
+                Persist.LookAtTrgPos = Temp.CameraLookAt.transform.position;
                 // Handle rotation distance limit
-                (FollowCamPersist.PrevRot * Quaternion.Inverse(Persist.Rot)).ToAngleAxis(out TempFloat, out TempVector3);
+                (Persist.PrevRot * Quaternion.Inverse(Temp.Camera.transform.rotation)).ToAngleAxis(out TempFloat, out TempVector3);
                 if (TempFloat > Persist.MinRotationThreshold) {
-                    Camera.main.transform.rotation = Quaternion.Lerp(FollowCamPersist.PrevRot, Persist.Rot, Settings.MaxRotation);
-                    FollowCamPersist.PrevRot = Camera.main.transform.rotation;
+                    Camera.main.transform.rotation = Quaternion.Lerp(Persist.PrevRot, Temp.Camera.transform.rotation, Settings.MaxRotation);
+                    Persist.PrevRot = Camera.main.transform.rotation;
                     Persist.MinRotationThreshold = Settings.MinRotationThreshold / 10;
                 } else {
-                    Camera.main.transform.rotation = FollowCamPersist.PrevRot;
+                    Camera.main.transform.rotation = Persist.PrevRot;
                     Persist.MinRotationThreshold = Settings.MinRotationThreshold;
                 }
-                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_rotw", FollowCamPersist.PrevRot.w);
-                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_rotx", FollowCamPersist.PrevRot.x);
-                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_roty", FollowCamPersist.PrevRot.y);
-                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_rotz", FollowCamPersist.PrevRot.z);
+                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_rotw", Persist.PrevRot.w);
+                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_rotx", Persist.PrevRot.x);
+                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_roty", Persist.PrevRot.y);
+                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_rotz", Persist.PrevRot.z);
 
             } catch (Exception ex) {
                 VNyan_Handlers.Log(ex.ToString());
