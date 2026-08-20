@@ -22,3 +22,14 @@ Examples:
 Camera Off + Rotation Absolute will simulate a static camera following your around on stage  
 Camera and rotation Relative will simulate a behind view camera like you might get in a 3rd person game  
 Camera and rotation Absolute will always have the camera looking forwards, but it can move around to stay the same distance from you
+
+Triggers:  
+```_lum_followcam_enable``` - Activate the followcam  
+```_lum_followcam_disable``` - Deactivate and revert to VNyan's regular camera  
+```_lum_followcam_offsetoff``` - Revert to regular camera only for the position  
+```_lum_followcam_offsetabs``` - Switch to absolute mode for calculating the bone offset  
+```_lum_followcam_offsetrel``` - Switch to relative move for calculating the bone offset  
+```_lum_followcam_rotationoff``` - Revert to regular camera only for the rotation (probably not useful)  
+```_lum_followcam_rotationabs``` - Switch to absolute mode for calculating the lookat bone offset  
+```_lum_followcam_rotationrel``` - Switch t- relative more for caluclating the lookat bone offset  
+```_lum_followcam_load``` - Load in a profile file (full path to be specified on text1)  
