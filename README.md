@@ -34,3 +34,13 @@ Triggers:
 ```_lum_followcam_rotationabs``` - Switch to absolute mode for calculating the lookat bone offset  
 ```_lum_followcam_rotationrel``` - Switch t- relative more for caluclating the lookat bone offset  
 ```_lum_followcam_load``` - Load in a profile file (full path to be specified on text1)  
+
+### Converting existing cameras to followcam profiles
+This plugin includes a feature to quickly copy your current VNyan camera to a FollowCam profile, allowing you to quickly convert your existing setup for use with follow cams.  
+**Important: All tracking should be disabled while doing this. Your model should be at 0,0,0 and facing forwards**  
+With the follower cam disabled, the copy buttons will copy the main VNyan camera settings to follow cam settings. This will automatically adjust based on your chosen bone, and static/non-static axis  
+There are separate copy buttons for both camera position, and camera look-at. For most use cases you will want to click both  
+You can then save to a new profile, and easily switch between profiles using ```_lum_followcam_load```  
+  
+Repeat this process for each VNyan camera you need to convert.
+Warning: Ensure you have found Lerp and Min Threshold settings that you like before doing a bulk conversion
