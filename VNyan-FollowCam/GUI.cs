@@ -1,17 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using UnityEngine;
+using static UnityEngine.Networking.UnityWebRequest;
 using static VNyan_FollowCam._Settings;
 
 namespace VNyan_FollowCam {
     internal class GUI : MonoBehaviour {
         internal const string CloseTriggerName = "____bottom_right_gui";
         internal const string CloseTriggerValue = "uk.lum.followcam";
-        private const int DWidth = 426;
-        private const int DHeight = 400;
+        private const int MinWidth = 426;
+        private const int MaxWidth = 1920;
+        private const int MinHeight = 400;
+        private static int DWidth = MinWidth;
+        private static int DHeight = MinHeight;
         private static GameObject objGUI = new GameObject("FollowCam_GUI", typeof(GUI));
 
+        internal static bool IsActive => objGUI.activeSelf;
         internal static void SetActive(bool Active) { objGUI.SetActive(Active); }
         internal static void ToggleActive() { objGUI.SetActive(!objGUI.activeSelf); }
 
@@ -81,7 +87,6 @@ namespace VNyan_FollowCam {
             try { 
                 GUILayout.BeginArea(new Rect(Screen.width - DWidth, Screen.height - DHeight, DWidth, DHeight));
                 GUILayout.FlexibleSpace(); // Force bottom alignment
-
                 if (BoneSelector == 0) {
 
                     GameObject AvatarObject = (GameObject)VNyanInterface.VNyanInterface.VNyanAvatar.getAvatarObject();
@@ -90,14 +95,31 @@ namespace VNyan_FollowCam {
                     //Transform LookAtBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)Settings.LookAtBone);
 
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label("FollowCam config");
-                    GUILayout.FlexibleSpace();
+                    if (String.IsNullOrEmpty(GlobalSettings.LastProfileName)) {
+                        GUILayout.Label("FollowCam config");
+                    } else {
+                        GUILayout.Label(System.IO.Path.GetFileName(GlobalSettings.LastProfileName));
+                    }
+                        GUILayout.FlexibleSpace();
+                    DWidth = (int)GUILayout.HorizontalSlider((float)DWidth, MinWidth, MaxWidth, GUILayout.MaxWidth(200));
                     if (GUILayout.Button(" X ")) { SetActive(false); }
                     GUILayout.EndHorizontal();
 
                     GUILayout.BeginHorizontal();
                     if (GUILayout.Button("Activate"))   { FollowCam.SetActive(true);  }
                     if (GUILayout.Button("Deactivate")) { FollowCam.SetActive(false); }
+                    GUILayout.FlexibleSpace();
+                    if (!String.IsNullOrEmpty(GlobalSettings.LastProfileName)) {
+                        if (GUILayout.Button("QLoad")) {
+                            SettingsFile.Load(GlobalSettings.LastProfileName);
+                            ReloadTempStrings();
+                        }
+                        if (GUILayout.Button("QSave")) {
+                            SettingsFile.Save(GlobalSettings.LastProfileName);
+                            ReloadTempStrings();
+                        }
+                    }
+
                     if (GUILayout.Button("Load")) {
                         string Result = VNyanInterface.VNyanInterface.VNyanUI.openLoadFileDialog("Load Follow Cam profile", new[] { "json" });
                         if (!string.IsNullOrEmpty(Result)) {
@@ -120,6 +142,7 @@ namespace VNyan_FollowCam {
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label("Camera Offset");
                                 if (GUILayout.Button(Settings.BaseBone.ToString())) { BoneSelector = 1; }
+                                GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
 
@@ -164,7 +187,7 @@ namespace VNyan_FollowCam {
                                 GUILayout.FlexibleSpace();
                             } GUILayout.EndHorizontal();
 
-                            FloatSlider(ref OffsetLerp, ref Settings.MaxMovementDistance, 0, 0.01f);
+                            FloatSlider(ref OffsetLerp, ref Settings.MaxMovementDistance, 0, 0.05f);
                             //Settings.MaxMovementDistance = GUILayout.HorizontalSlider(Settings.MaxMovementDistance, 0, 0.01f);
 
                             GUILayout.BeginHorizontal(); {
@@ -176,7 +199,31 @@ namespace VNyan_FollowCam {
                             //Settings.MinMovementThreshold = GUILayout.HorizontalSlider(Settings.MinMovementThreshold, 0, 1);
 
                             GUILayout.Label($"FCam: {Persist.PrevPos.ToString()}");
-                            GUILayout.Label($"VCam: {Camera.main.transform.position.ToString()}");
+                            GUILayout.BeginHorizontal(); {
+                                GUILayout.Label($"VCam: {Camera.main.transform.position.ToString()}");
+                                if (!FollowCam.IsActive) {
+                                    if (GUILayout.Button("Copy")) {
+                                        Transform CopyBaseBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)Settings.BaseBone);
+                                        if (Settings.StaticX) {
+                                            Settings.Offset_X = Camera.main.transform.position.x; 
+                                        } else {
+                                            Settings.Offset_X = Camera.main.transform.position.x - CopyBaseBoneTransform.position.x;
+                                        }
+                                        if (Settings.StaticY) {
+                                            Settings.Offset_Y = Camera.main.transform.position.y;
+                                        } else {
+                                            Settings.Offset_Y = Camera.main.transform.position.y - CopyBaseBoneTransform.position.y;
+                                        }
+                                        if (Settings.StaticZ) {
+                                            Settings.Offset_Z = Camera.main.transform.position.z;
+                                        } else {
+                                            Settings.Offset_Z = Camera.main.transform.position.z - CopyBaseBoneTransform.position.z;
+                                        }
+                                        ReloadTempStrings();
+                                    }
+                                }
+                                GUILayout.FlexibleSpace();
+                            } GUILayout.EndHorizontal();
                             GUILayout.Label($"Trg: {Persist.TrgPos.ToString()}");
                             GUILayout.Label($"Bone: {BaseBoneTransform.position.ToString()}");
                         }
@@ -185,6 +232,7 @@ namespace VNyan_FollowCam {
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label("Look at bone");
                                 if (GUILayout.Button(Settings.LookAtBone.ToString())) { BoneSelector = 2; }
+                                GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
                             GUILayout.BeginHorizontal();
@@ -231,7 +279,7 @@ namespace VNyan_FollowCam {
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
-                            FloatSlider(ref LookAtLerp, ref Settings.MaxRotation, 0, 1);
+                            FloatSlider(ref LookAtLerp, ref Settings.MaxRotation, 0, 0.1f);
                             //Settings.MaxRotation = GUILayout.HorizontalSlider(Settings.MaxRotation, 0, 1);
 
                             GUILayout.BeginHorizontal();
@@ -245,9 +293,36 @@ namespace VNyan_FollowCam {
                             //Settings.MinRotationThreshold = GUILayout.HorizontalSlider(Settings.MinRotationThreshold, 0, 360);
 
                             GUILayout.Label(Persist.PrevRot.eulerAngles.ToString());
-                            GUILayout.Label(Camera.main.transform.rotation.eulerAngles.ToString());
-                            GUILayout.Label(Persist.LookAtTrgPos.ToString());
+                            GUILayout.BeginHorizontal(); {
+
+                                GUILayout.Label(Camera.main.transform.rotation.eulerAngles.ToString());
+                                if (!FollowCam.IsActive) {
+                                    if (GUILayout.Button("Copy")) {
+                                        Transform LookAtBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)Settings.LookAtBone);
+                                        float BoneZ = LookAtBoneTransform.position.z;
+                                        float HitPoint;
+                                        Ray CameraRay = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+                                        Plane CollisionPlane = new Plane(new Vector3(0, 0, BoneZ), new Vector3(1, 1, BoneZ), new Vector3(0, 1, BoneZ));
+                                        CollisionPlane.Raycast(CameraRay, out HitPoint);
+                                        Vector3 GlobalLookAtPos = CameraRay.GetPoint(HitPoint);
+                                        if (Settings.LookAtStaticX) {
+                                            Settings.LookAtOffset_X = GlobalLookAtPos.x;
+                                        } else {
+                                            Settings.LookAtOffset_X = GlobalLookAtPos.x - LookAtBoneTransform.position.x;
+                                        }
+                                        if (Settings.LookAtStaticY) {
+                                            Settings.LookAtOffset_Y = GlobalLookAtPos.y;
+                                        } else {
+                                            Settings.LookAtOffset_Y = GlobalLookAtPos.y - LookAtBoneTransform.position.y;
+                                        }
+                                        ReloadTempStrings();
+                                    }
+                                    GUILayout.FlexibleSpace();
+                                }
+                            } GUILayout.EndHorizontal();
                             GUILayout.Label("");
+                            GUILayout.Label(Persist.LookAtTrgPos.ToString());
+                            
                         }
                         GUILayout.EndVertical();
                     }

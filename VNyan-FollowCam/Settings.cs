@@ -13,6 +13,10 @@ namespace VNyan_FollowCam {
         Relative = 2
     }
 
+    internal class __GlobalSettings {
+        public string LastProfileName = "";
+    }
+    
     internal class __Settings {
         internal HumanBodyBones BaseBone;
         internal HumanBodyBones LookAtBone;
@@ -46,6 +50,7 @@ namespace VNyan_FollowCam {
 
     internal static class _Settings {
         internal static __Settings Settings = new __Settings();
+        internal static __GlobalSettings GlobalSettings = new __GlobalSettings();
     }
 
     internal static class SettingsFile {
@@ -55,7 +60,13 @@ namespace VNyan_FollowCam {
                 if (File.Exists(FileName)) {
                     VNyan_Handlers.Log($"Loading {FileName}");
                     __Settings? TempSettings = JsonConvert.DeserializeObject<__Settings>(File.ReadAllText(FileName));
-                    if (TempSettings != null) _Settings.Settings = TempSettings;
+                    if (TempSettings != null) {
+                        bool GUIStatus = GUI.IsActive;
+                        if (GUIStatus) { GUI.SetActive(false); }
+                        _Settings.Settings = TempSettings;
+                        _Settings.GlobalSettings.LastProfileName = FileName;
+                        GUI.SetActive(GUIStatus);
+                    }
                 } else {
                     VNyan_Handlers.Log($"Could not find {FileName}");
                 }
@@ -66,7 +77,8 @@ namespace VNyan_FollowCam {
         internal static void Save(string FileName) {
             try {
                 VNyan_Handlers.Log($"Saving to {FileName}");
-                File.WriteAllText(FileName, JsonConvert.SerializeObject(_Settings.Settings));
+                File.WriteAllText(FileName, JsonConvert.SerializeObject(_Settings.Settings,Formatting.Indented));
+                _Settings.GlobalSettings.LastProfileName = FileName;
             } catch (Exception ex) {
                 VNyan_Handlers.Log(ex.ToString());
             }

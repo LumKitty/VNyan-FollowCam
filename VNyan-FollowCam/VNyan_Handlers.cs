@@ -8,7 +8,7 @@ namespace VNyan_FollowCam {
 
     public class VNyan_Handlers : IVNyanPluginManifest, IButtonClickedHandler, ITriggerHandler {
         public string PluginName { get; } = "VNyan FollowCam";
-        public string Version { get; } = "0.2-beta";
+        public string Version { get; } = "0.3-beta";
         public string Title => PluginName + " " + Version;
         public string Author { get; } = "LumKitty";
         public string Website { get; } = "https://lum.uk/";
@@ -22,6 +22,7 @@ namespace VNyan_FollowCam {
             Settings.LookAtBone = UnityEngine.HumanBodyBones.Head;
             FollowCam.SetActive(false);
             SettingsFile.Load();
+            GlobalSettings.LastProfileName = ""; // Remove this once we're storing previous profile separately
             GUI.SetActive(false);
             VNyanInterface.VNyanInterface.VNyanUI.registerPluginButton("FollowCam", this);
             VNyanInterface.VNyanInterface.VNyanTrigger.registerTriggerListener(this);

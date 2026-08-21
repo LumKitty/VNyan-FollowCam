@@ -5,10 +5,10 @@ using UnityEngine;
 using static VNyan_FollowCam._Settings;
 
 namespace VNyan_FollowCam {
-    static class Persist {
+    internal static class Persist {
         internal static Vector3 TrgPos;       // For reporting in the GUI
         internal static Vector3 LookAtTrgPos; //
-        internal static Vector3    PrevPos { get; set; } = UnityEngine.Camera.main.transform.position; // These actually need to persist
+        internal static Vector3 PrevPos { get; set; } = UnityEngine.Camera.main.transform.position; // These actually need to persist
         internal static Quaternion PrevRot { get; set; } = UnityEngine.Camera.main.transform.rotation; //
         internal static float MinMovementThreshold;
         internal static float MinRotationThreshold;
