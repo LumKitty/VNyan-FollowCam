@@ -21,11 +21,11 @@ namespace VNyan_FollowCam {
             Settings.BaseBone = UnityEngine.HumanBodyBones.Hips;
             Settings.LookAtBone = UnityEngine.HumanBodyBones.Head;
             FollowCam.SetActive(false);
-            SettingsFile.Load();
-            GlobalSettings.LastProfileName = ""; // Remove this once we're storing previous profile separately
+            SettingsFile.Load(SettingsFile.SettingsFilename, false);
             GUI.SetActive(false);
             VNyanInterface.VNyanInterface.VNyanUI.registerPluginButton("FollowCam", this);
             VNyanInterface.VNyanInterface.VNyanTrigger.registerTriggerListener(this);
+            GlobalSettings.LastProfileName = "";
         }
 
         public void triggerCalled(string name, int int1, int int2, int int3, string text1, string text2, string text3) {

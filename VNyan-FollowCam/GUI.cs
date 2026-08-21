@@ -23,7 +23,6 @@ namespace VNyan_FollowCam {
 
         internal static int BoneSelector = 0;
 
-
         internal string OffsetX = "";
         internal string OffsetY = "";
         internal string OffsetZ = "";
@@ -36,6 +35,9 @@ namespace VNyan_FollowCam {
         internal string LookAtLerp = "";
         internal string LookAtMin = "";
 
+        private static GUIStyle ActivateButtonStyle = new GUIStyle();
+        private static GUIStyle DeactivateButtonStyle = new GUIStyle();
+
         private readonly HumanBodyBones[] BoneSelectorList = {
             HumanBodyBones.Hips,
             HumanBodyBones.Spine,
@@ -47,7 +49,7 @@ namespace VNyan_FollowCam {
             HumanBodyBones.LeftFoot,
             HumanBodyBones.RightFoot,
         };
-
+        
         void OnDisable() {
             SettingsFile.Save();
         }
@@ -100,14 +102,27 @@ namespace VNyan_FollowCam {
                     } else {
                         GUILayout.Label(System.IO.Path.GetFileName(GlobalSettings.LastProfileName));
                     }
-                        GUILayout.FlexibleSpace();
+                    GUILayout.FlexibleSpace();
                     DWidth = (int)GUILayout.HorizontalSlider((float)DWidth, MinWidth, MaxWidth, GUILayout.MaxWidth(200));
                     if (GUILayout.Button(" X ")) { SetActive(false); }
                     GUILayout.EndHorizontal();
 
                     GUILayout.BeginHorizontal();
-                    if (GUILayout.Button("Activate"))   { FollowCam.SetActive(true);  }
-                    if (GUILayout.Button("Deactivate")) { FollowCam.SetActive(false); }
+                    ActivateButtonStyle = new GUIStyle("button");
+                    DeactivateButtonStyle = new GUIStyle("button");
+                    if (FollowCam.IsActive) { 
+                        ActivateButtonStyle.normal.textColor  = new Color(1, 0.5f, 0.5f);
+                        ActivateButtonStyle.hover.textColor   = ActivateButtonStyle.normal.textColor;
+                        ActivateButtonStyle.active.textColor  = ActivateButtonStyle.normal.textColor;
+                        ActivateButtonStyle.focused.textColor = ActivateButtonStyle.normal.textColor;
+                    } else { 
+                        DeactivateButtonStyle.normal.textColor  = new Color(1, 0.5f, 0.5f);
+                        DeactivateButtonStyle.hover.textColor   = DeactivateButtonStyle.normal.textColor;
+                        DeactivateButtonStyle.active.textColor  = DeactivateButtonStyle.normal.textColor;
+                        DeactivateButtonStyle.focused.textColor = DeactivateButtonStyle.normal.textColor;
+                    }
+                    if (GUILayout.Button("Activate",   ActivateButtonStyle))   { FollowCam.SetActive(true); }
+                    if (GUILayout.Button("Deactivate", DeactivateButtonStyle)) { FollowCam.SetActive(false); }
                     GUILayout.FlexibleSpace();
                     if (!String.IsNullOrEmpty(GlobalSettings.LastProfileName)) {
                         if (GUILayout.Button("QLoad")) {

@@ -54,8 +54,9 @@ namespace VNyan_FollowCam {
     }
 
     internal static class SettingsFile {
-        private static readonly String SettingsFilename = VNyanInterface.VNyanInterface.VNyanSettings.getProfilePath() + "\\FollowCam.json";
-        internal static void Load(string FileName) {
+        internal static readonly String SettingsFilename = VNyanInterface.VNyanInterface.VNyanSettings.getProfilePath() + "\\FollowCam.json";
+        
+        internal static void Load(string FileName, bool UpdateLastProfile = true) {
             try {
                 if (File.Exists(FileName)) {
                     VNyan_Handlers.Log($"Loading {FileName}");
@@ -64,7 +65,7 @@ namespace VNyan_FollowCam {
                         bool GUIStatus = GUI.IsActive;
                         if (GUIStatus) { GUI.SetActive(false); }
                         _Settings.Settings = TempSettings;
-                        _Settings.GlobalSettings.LastProfileName = FileName;
+                        if (UpdateLastProfile) { _Settings.GlobalSettings.LastProfileName = FileName; }
                         GUI.SetActive(GUIStatus);
                     }
                 } else {
@@ -74,17 +75,17 @@ namespace VNyan_FollowCam {
                 VNyan_Handlers.Log(ex.ToString());
             }
         }
-        internal static void Save(string FileName) {
+        internal static void Save(string FileName, bool UpdateLastProfile = true) {
             try {
                 VNyan_Handlers.Log($"Saving to {FileName}");
                 File.WriteAllText(FileName, JsonConvert.SerializeObject(_Settings.Settings,Formatting.Indented));
-                _Settings.GlobalSettings.LastProfileName = FileName;
+                if (UpdateLastProfile) { _Settings.GlobalSettings.LastProfileName = FileName; }
             } catch (Exception ex) {
                 VNyan_Handlers.Log(ex.ToString());
             }
         }
 
-        internal static void Load() { Load(SettingsFilename); }
+        internal static void Load() { Load(SettingsFilename, false); }
         internal static void Save() { Save(SettingsFilename); }
     }
 }
