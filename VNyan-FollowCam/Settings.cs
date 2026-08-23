@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace VNyan_FollowCam {
 
-    enum CameraPosMode {
+    public enum CameraPosMode {
         Off = 0,
         Absolute = 1,
         Relative = 2
@@ -17,7 +17,7 @@ namespace VNyan_FollowCam {
         public string LastProfileName = "";
     }
     
-    internal class __Settings {
+    public class __Settings {
         internal HumanBodyBones BaseBone;
         internal HumanBodyBones LookAtBone;
         public string CameraBoneBase { get { return BaseBone.ToString(); } set { Enum.TryParse<HumanBodyBones>(value, out BaseBone); } }
@@ -56,7 +56,7 @@ namespace VNyan_FollowCam {
     internal static class SettingsFile {
         internal static readonly String SettingsFilename = VNyanInterface.VNyanInterface.VNyanSettings.getProfilePath() + "\\FollowCam.json";
         
-        internal static void Load(string FileName, bool UpdateLastProfile = true) {
+        internal static void Load(string FileName, CameraWrangler CurrentCameraWrangler, bool UpdateLastProfile = true) {
             try {
                 if (File.Exists(FileName)) {
                     VNyan_Handlers.Log($"Loading {FileName}");
@@ -64,7 +64,7 @@ namespace VNyan_FollowCam {
                     if (TempSettings != null) {
                         bool GUIStatus = GUI.IsActive;
                         if (GUIStatus) { GUI.SetActive(false); }
-                        _Settings.Settings = TempSettings;
+                        CurrentCameraWrangler.Settings = TempSettings;
                         if (UpdateLastProfile) { _Settings.GlobalSettings.LastProfileName = FileName; }
                         GUI.SetActive(GUIStatus);
                     }
@@ -75,17 +75,17 @@ namespace VNyan_FollowCam {
                 VNyan_Handlers.Log(ex.ToString());
             }
         }
-        internal static void Save(string FileName, bool UpdateLastProfile = true) {
+        internal static void Save(string FileName, CameraWrangler CurrentCameraWrangler, bool UpdateLastProfile = true) {
             try {
                 VNyan_Handlers.Log($"Saving to {FileName}");
-                File.WriteAllText(FileName, JsonConvert.SerializeObject(_Settings.Settings,Formatting.Indented));
+                File.WriteAllText(FileName, JsonConvert.SerializeObject(CurrentCameraWrangler.Settings,Formatting.Indented));
                 if (UpdateLastProfile) { _Settings.GlobalSettings.LastProfileName = FileName; }
             } catch (Exception ex) {
                 VNyan_Handlers.Log(ex.ToString());
             }
         }
 
-        internal static void Load() { Load(SettingsFilename, false); }
-        internal static void Save() { Save(SettingsFilename); }
+        internal static void Load() { Load(SettingsFilename, FollowCam.objMainCamera, false); }
+        internal static void Save() { Save(SettingsFilename, FollowCam.objMainCamera); }
     }
 }

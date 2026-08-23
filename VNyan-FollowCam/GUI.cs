@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 using static UnityEngine.Networking.UnityWebRequest;
-using static VNyan_FollowCam._Settings;
+//using static VNyan_FollowCam._Settings;
 
 namespace VNyan_FollowCam {
     internal class GUI : MonoBehaviour {
@@ -15,7 +15,9 @@ namespace VNyan_FollowCam {
         private const int MinHeight = 400;
         private static int DWidth = MinWidth;
         private static int DHeight = MinHeight;
-        private static GameObject objGUI = new GameObject("FollowCam_GUI", typeof(GUI));
+        internal static GameObject objGUI = new GameObject("FollowCam_GUI", typeof(GUI));
+
+        internal static CameraWrangler CurrentWrangler = new CameraWrangler(Camera.main.transform, _Settings.Settings);
 
         internal static bool IsActive => objGUI.activeSelf;
         internal static void SetActive(bool Active) { objGUI.SetActive(Active); }
@@ -60,16 +62,16 @@ namespace VNyan_FollowCam {
         }
 
         void ReloadTempStrings() {
-            OffsetX = Settings.OffsetPosition.x.ToString();
-            OffsetY = Settings.OffsetPosition.y.ToString();
-            OffsetZ = Settings.OffsetPosition.z.ToString();
-            OffsetLerp = Settings.MaxMovementDistance.ToString();
-            OffsetMin = Settings.MinMovementThreshold.ToString();
-            LookAtOffsetX = Settings.LookAtOffsetPosition.x.ToString();
-            LookAtOffsetY = Settings.LookAtOffsetPosition.y.ToString();
-            LookAtOffsetZ = Settings.LookAtOffsetPosition.z.ToString();
-            LookAtLerp = Settings.MaxRotation.ToString();
-            LookAtMin = Settings.MinRotationThreshold.ToString();
+            OffsetX = CurrentWrangler.Settings.OffsetPosition.x.ToString();
+            OffsetY = CurrentWrangler.Settings.OffsetPosition.y.ToString();
+            OffsetZ = CurrentWrangler.Settings.OffsetPosition.z.ToString();
+            OffsetLerp = CurrentWrangler.Settings.MaxMovementDistance.ToString();
+            OffsetMin = CurrentWrangler.Settings.MinMovementThreshold.ToString();
+            LookAtOffsetX = CurrentWrangler.Settings.LookAtOffsetPosition.x.ToString();
+            LookAtOffsetY = CurrentWrangler.Settings.LookAtOffsetPosition.y.ToString();
+            LookAtOffsetZ = CurrentWrangler.Settings.LookAtOffsetPosition.z.ToString();
+            LookAtLerp = CurrentWrangler.Settings.MaxRotation.ToString();
+            LookAtMin = CurrentWrangler.Settings.MinRotationThreshold.ToString();
         }
         
         static string FloatTextField(string Input, out float RealValue) {
@@ -93,14 +95,14 @@ namespace VNyan_FollowCam {
 
                     GameObject AvatarObject = (GameObject)VNyanInterface.VNyanInterface.VNyanAvatar.getAvatarObject();
                     Animator AvatarAnimator = AvatarObject.GetComponent<Animator>();
-                    Transform BaseBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)Settings.BaseBone);
+                    Transform BaseBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)CurrentWrangler.Settings.BaseBone);
                     //Transform LookAtBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)Settings.LookAtBone);
 
                     GUILayout.BeginHorizontal();
-                    if (String.IsNullOrEmpty(GlobalSettings.LastProfileName)) {
+                    if (String.IsNullOrEmpty(_Settings.GlobalSettings.LastProfileName)) {
                         GUILayout.Label("FollowCam config");
                     } else {
-                        GUILayout.Label(System.IO.Path.GetFileName(GlobalSettings.LastProfileName));
+                        GUILayout.Label(System.IO.Path.GetFileName(_Settings.GlobalSettings.LastProfileName));
                     }
                     GUILayout.FlexibleSpace();
                     DWidth = (int)GUILayout.HorizontalSlider((float)DWidth, MinWidth, MaxWidth, GUILayout.MaxWidth(200));
@@ -124,13 +126,13 @@ namespace VNyan_FollowCam {
                     if (GUILayout.Button("Activate",   ActivateButtonStyle))   { FollowCam.SetActive(true); }
                     if (GUILayout.Button("Deactivate", DeactivateButtonStyle)) { FollowCam.SetActive(false); }
                     GUILayout.FlexibleSpace();
-                    if (!String.IsNullOrEmpty(GlobalSettings.LastProfileName)) {
+                    if (!String.IsNullOrEmpty(_Settings.GlobalSettings.LastProfileName)) {
                         if (GUILayout.Button("QLoad")) {
-                            SettingsFile.Load(GlobalSettings.LastProfileName);
+                            SettingsFile.Load(_Settings.GlobalSettings.LastProfileName, CurrentWrangler);
                             ReloadTempStrings();
                         }
                         if (GUILayout.Button("QSave")) {
-                            SettingsFile.Save(GlobalSettings.LastProfileName);
+                            SettingsFile.Save(_Settings.GlobalSettings.LastProfileName, CurrentWrangler);
                             ReloadTempStrings();
                         }
                     }
@@ -138,7 +140,7 @@ namespace VNyan_FollowCam {
                     if (GUILayout.Button("Load")) {
                         string Result = VNyanInterface.VNyanInterface.VNyanUI.openLoadFileDialog("Load Follow Cam profile", new[] { "json" });
                         if (!string.IsNullOrEmpty(Result)) {
-                            SettingsFile.Load(Result);
+                            SettingsFile.Load(Result, CurrentWrangler);
                             ReloadTempStrings();
                         }
                     }
@@ -146,7 +148,7 @@ namespace VNyan_FollowCam {
                     if (GUILayout.Button("Save")) {
                         string Result = VNyanInterface.VNyanInterface.VNyanUI.openSaveFileDialog("Save Follow Cam profile as...", new[] { "json" });
                         if (!string.IsNullOrEmpty(Result)) {
-                            SettingsFile.Save(Result);
+                            SettingsFile.Save(Result, CurrentWrangler);
                         }
                     }
 
@@ -156,179 +158,179 @@ namespace VNyan_FollowCam {
                         GUILayout.BeginVertical(); {
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label("Camera Offset");
-                                if (GUILayout.Button(Settings.BaseBone.ToString())) { BoneSelector = 1; }
+                                if (GUILayout.Button(CurrentWrangler.Settings.BaseBone.ToString())) { BoneSelector = 1; }
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
 
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label($"X: ");
-                                OffsetX = FloatTextField(OffsetX, out Settings.OffsetPosition.x);
-                                Settings.StaticX = GUILayout.Toggle(Settings.StaticX, "Static");
+                                OffsetX = FloatTextField(OffsetX, out CurrentWrangler.Settings.OffsetPosition.x);
+                                CurrentWrangler.Settings.StaticX = GUILayout.Toggle(CurrentWrangler.Settings.StaticX, "Static");
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
-                            FloatSlider(ref OffsetX, ref Settings.OffsetPosition.x, -10, 10);
+                            FloatSlider(ref OffsetX, ref CurrentWrangler.Settings.OffsetPosition.x, -10, 10);
                             //Settings.OffsetPosition.x = GUILayout.HorizontalSlider(Settings.OffsetPosition.x, -10, 10);
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label($"Y: ");
-                                OffsetY = FloatTextField(OffsetY, out Settings.OffsetPosition.y);
-                                Settings.StaticY = GUILayout.Toggle(Settings.StaticY, "Static");
+                                OffsetY = FloatTextField(OffsetY, out CurrentWrangler.Settings.OffsetPosition.y);
+                                CurrentWrangler.Settings.StaticY = GUILayout.Toggle(CurrentWrangler.Settings.StaticY, "Static");
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
-                            FloatSlider(ref OffsetY, ref Settings.OffsetPosition.y, -10, 10);
+                            FloatSlider(ref OffsetY, ref CurrentWrangler.Settings.OffsetPosition.y, -10, 10);
                             //Settings.OffsetPosition.y = GUILayout.HorizontalSlider(Settings.OffsetPosition.y, -10, 10);
                             GUILayout.BeginHorizontal();
                             {
                                 GUILayout.Label($"Z: ");
-                                OffsetZ = FloatTextField(OffsetZ, out Settings.OffsetPosition.z);
-                                Settings.StaticZ = GUILayout.Toggle(Settings.StaticZ, "Static");
+                                OffsetZ = FloatTextField(OffsetZ, out CurrentWrangler.Settings.OffsetPosition.z);
+                                CurrentWrangler.Settings.StaticZ = GUILayout.Toggle(CurrentWrangler.Settings.StaticZ, "Static");
                                 GUILayout.FlexibleSpace();
                             } GUILayout.EndHorizontal();
-                            FloatSlider(ref OffsetZ, ref Settings.OffsetPosition.z, -10, 10);
+                            FloatSlider(ref OffsetZ, ref CurrentWrangler.Settings.OffsetPosition.z, -10, 10);
                             //Settings.OffsetPosition.z = GUILayout.HorizontalSlider(Settings.OffsetPosition.z, -10, 10);
 
                             GUILayout.BeginHorizontal(); {
-                                if (GUILayout.Toggle((Settings.OffsetMode == CameraPosMode.Off),      "Off"))      { Settings.OffsetMode = CameraPosMode.Off; }
-                                if (GUILayout.Toggle((Settings.OffsetMode == CameraPosMode.Absolute), "Absolute")) { Settings.OffsetMode = CameraPosMode.Absolute; }
-                                if (GUILayout.Toggle((Settings.OffsetMode == CameraPosMode.Relative), "Relative")) { Settings.OffsetMode = CameraPosMode.Relative; }
+                                if (GUILayout.Toggle((CurrentWrangler.Settings.OffsetMode == CameraPosMode.Off),      "Off"))      { CurrentWrangler.Settings.OffsetMode = CameraPosMode.Off; }
+                                if (GUILayout.Toggle((CurrentWrangler.Settings.OffsetMode == CameraPosMode.Absolute), "Absolute")) { CurrentWrangler.Settings.OffsetMode = CameraPosMode.Absolute; }
+                                if (GUILayout.Toggle((CurrentWrangler.Settings.OffsetMode == CameraPosMode.Relative), "Relative")) { CurrentWrangler.Settings.OffsetMode = CameraPosMode.Relative; }
                             }
                             GUILayout.EndHorizontal();
 
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label($"Movement Lerp: ");
-                                OffsetLerp = FloatTextField(OffsetLerp, out Settings.MaxMovementDistance);
+                                OffsetLerp = FloatTextField(OffsetLerp, out CurrentWrangler.Settings.MaxMovementDistance);
                                 GUILayout.FlexibleSpace();
                             } GUILayout.EndHorizontal();
 
-                            FloatSlider(ref OffsetLerp, ref Settings.MaxMovementDistance, 0, 0.05f);
+                            FloatSlider(ref OffsetLerp, ref CurrentWrangler.Settings.MaxMovementDistance, 0, 0.05f);
                             //Settings.MaxMovementDistance = GUILayout.HorizontalSlider(Settings.MaxMovementDistance, 0, 0.01f);
 
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label($"Min Move Thresh: ");
-                                OffsetMin = FloatTextField(OffsetMin, out Settings.MinMovementThreshold);
+                                OffsetMin = FloatTextField(OffsetMin, out CurrentWrangler.Settings.MinMovementThreshold);
                                 GUILayout.FlexibleSpace();
                             } GUILayout.EndHorizontal();
-                            FloatSlider(ref OffsetMin, ref Settings.MinMovementThreshold, 0, 1);
+                            FloatSlider(ref OffsetMin, ref CurrentWrangler.Settings.MinMovementThreshold, 0, 1);
                             //Settings.MinMovementThreshold = GUILayout.HorizontalSlider(Settings.MinMovementThreshold, 0, 1);
 
-                            GUILayout.Label($"FCam: {Persist.PrevPos.ToString()}");
+                            GUILayout.Label($"FCam: {CurrentWrangler.CurrentCamera.position.ToString()}");
                             GUILayout.BeginHorizontal(); {
-                                GUILayout.Label($"VCam: {Camera.main.transform.position.ToString()}");
+                                GUILayout.Label($"VCam: {CurrentWrangler.CurrentCamera.position.ToString()}");
                                 if (!FollowCam.IsActive) {
                                     if (GUILayout.Button("Copy")) {
-                                        Transform CopyBaseBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)Settings.BaseBone);
-                                        if (Settings.StaticX) {
-                                            Settings.Offset_X = Camera.main.transform.position.x; 
+                                        Transform CopyBaseBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)CurrentWrangler.Settings.BaseBone);
+                                        if (CurrentWrangler.Settings.StaticX) {
+                                            CurrentWrangler.Settings.Offset_X = CurrentWrangler.CurrentCamera.position.x; 
                                         } else {
-                                            Settings.Offset_X = Camera.main.transform.position.x - CopyBaseBoneTransform.position.x;
+                                            CurrentWrangler.Settings.Offset_X = CurrentWrangler.CurrentCamera.position.x - CopyBaseBoneTransform.position.x;
                                         }
-                                        if (Settings.StaticY) {
-                                            Settings.Offset_Y = Camera.main.transform.position.y;
+                                        if (CurrentWrangler.Settings.StaticY) {
+                                            CurrentWrangler.Settings.Offset_Y = CurrentWrangler.CurrentCamera.position.y;
                                         } else {
-                                            Settings.Offset_Y = Camera.main.transform.position.y - CopyBaseBoneTransform.position.y;
+                                            CurrentWrangler.Settings.Offset_Y = CurrentWrangler.CurrentCamera.position.y - CopyBaseBoneTransform.position.y;
                                         }
-                                        if (Settings.StaticZ) {
-                                            Settings.Offset_Z = Camera.main.transform.position.z;
+                                        if (CurrentWrangler.Settings.StaticZ) {
+                                            CurrentWrangler.Settings.Offset_Z = CurrentWrangler.CurrentCamera.position.z;
                                         } else {
-                                            Settings.Offset_Z = Camera.main.transform.position.z - CopyBaseBoneTransform.position.z;
+                                            CurrentWrangler.Settings.Offset_Z = CurrentWrangler.CurrentCamera.position.z - CopyBaseBoneTransform.position.z;
                                         }
                                         ReloadTempStrings();
                                     }
                                 }
                                 GUILayout.FlexibleSpace();
                             } GUILayout.EndHorizontal();
-                            GUILayout.Label($"Trg: {Persist.TrgPos.ToString()}");
+                            GUILayout.Label($"Trg: {CurrentWrangler.CurrentCamera.position.ToString()}");
                             GUILayout.Label($"Bone: {BaseBoneTransform.position.ToString()}");
                         }
                         GUILayout.EndVertical();
                         GUILayout.BeginVertical(); {
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label("Look at bone");
-                                if (GUILayout.Button(Settings.LookAtBone.ToString())) { BoneSelector = 2; }
+                                if (GUILayout.Button(CurrentWrangler.Settings.LookAtBone.ToString())) { BoneSelector = 2; }
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
                             GUILayout.BeginHorizontal();
                             {
                                 GUILayout.Label($"X: ");
-                                LookAtOffsetX = FloatTextField(LookAtOffsetX, out Settings.LookAtOffsetPosition.x);
-                                Settings.LookAtStaticX = GUILayout.Toggle(Settings.LookAtStaticX, "Static");
+                                LookAtOffsetX = FloatTextField(LookAtOffsetX, out CurrentWrangler.Settings.LookAtOffsetPosition.x);
+                                CurrentWrangler.Settings.LookAtStaticX = GUILayout.Toggle(CurrentWrangler.Settings.LookAtStaticX, "Static");
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
-                            FloatSlider(ref LookAtOffsetX, ref Settings.LookAtOffsetPosition.x, -10, 10);
+                            FloatSlider(ref LookAtOffsetX, ref CurrentWrangler.Settings.LookAtOffsetPosition.x, -10, 10);
                             //Settings.LookAtOffsetPosition.x = GUILayout.HorizontalSlider(Settings.LookAtOffsetPosition.x, -10, 10);
                             GUILayout.BeginHorizontal();
                             {
                                 GUILayout.Label($"Y: ");
-                                LookAtOffsetY = FloatTextField(LookAtOffsetY, out Settings.LookAtOffsetPosition.y);
-                                Settings.LookAtStaticY = GUILayout.Toggle(Settings.LookAtStaticY, "Static");
+                                LookAtOffsetY = FloatTextField(LookAtOffsetY, out CurrentWrangler.Settings.LookAtOffsetPosition.y);
+                                CurrentWrangler.Settings.LookAtStaticY = GUILayout.Toggle(CurrentWrangler.Settings.LookAtStaticY, "Static");
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
-                            FloatSlider(ref LookAtOffsetY, ref Settings.LookAtOffsetPosition.y, -10, 10);
+                            FloatSlider(ref LookAtOffsetY, ref CurrentWrangler.Settings.LookAtOffsetPosition.y, -10, 10);
                             //Settings.LookAtOffsetPosition.y = GUILayout.HorizontalSlider(Settings.LookAtOffsetPosition.y, -10, 10);
                             GUILayout.BeginHorizontal();
                             {
                                 GUILayout.Label($"Z: ");
-                                LookAtOffsetZ = FloatTextField(LookAtOffsetZ, out Settings.LookAtOffsetPosition.z);
-                                Settings.LookAtStaticZ = GUILayout.Toggle(Settings.LookAtStaticZ, "Static");
+                                LookAtOffsetZ = FloatTextField(LookAtOffsetZ, out CurrentWrangler.Settings.LookAtOffsetPosition.z);
+                                CurrentWrangler.Settings.LookAtStaticZ = GUILayout.Toggle(CurrentWrangler.Settings.LookAtStaticZ, "Static");
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
-                            FloatSlider(ref LookAtOffsetZ, ref Settings.LookAtOffsetPosition.z, -10, 10);
+                            FloatSlider(ref LookAtOffsetZ, ref CurrentWrangler.Settings.LookAtOffsetPosition.z, -10, 10);
                             //Settings.LookAtOffsetPosition.z = GUILayout.HorizontalSlider(Settings.LookAtOffsetPosition.z, -10, 10);
                             GUILayout.BeginHorizontal();
                             {
-                                if (GUILayout.Toggle((Settings.RotationMode == CameraPosMode.Off),      "Off"))      { Settings.RotationMode = CameraPosMode.Off; }
-                                if (GUILayout.Toggle((Settings.RotationMode == CameraPosMode.Absolute), "Absolute")) { Settings.RotationMode = CameraPosMode.Absolute; }
-                                if (GUILayout.Toggle((Settings.RotationMode == CameraPosMode.Relative), "Relative")) { Settings.RotationMode = CameraPosMode.Relative; }
+                                if (GUILayout.Toggle((CurrentWrangler.Settings.RotationMode == CameraPosMode.Off),      "Off"))      { CurrentWrangler.Settings.RotationMode = CameraPosMode.Off; }
+                                if (GUILayout.Toggle((CurrentWrangler.Settings.RotationMode == CameraPosMode.Absolute), "Absolute")) { CurrentWrangler.Settings.RotationMode = CameraPosMode.Absolute; }
+                                if (GUILayout.Toggle((CurrentWrangler.Settings.RotationMode == CameraPosMode.Relative), "Relative")) { CurrentWrangler.Settings.RotationMode = CameraPosMode.Relative; }
                             }
                             GUILayout.EndHorizontal();
                             GUILayout.BeginHorizontal();
                             {
                                 GUILayout.Label($"Rotation Lerp: ");
-                                LookAtLerp = FloatTextField(LookAtLerp, out Settings.MaxRotation);
+                                LookAtLerp = FloatTextField(LookAtLerp, out CurrentWrangler.Settings.MaxRotation);
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
-                            FloatSlider(ref LookAtLerp, ref Settings.MaxRotation, 0, 0.1f);
+                            FloatSlider(ref LookAtLerp, ref CurrentWrangler.Settings.MaxRotation, 0, 0.1f);
                             //Settings.MaxRotation = GUILayout.HorizontalSlider(Settings.MaxRotation, 0, 1);
 
                             GUILayout.BeginHorizontal();
                             {
                                 GUILayout.Label($"Min rotation thresh: ");
-                                LookAtMin = FloatTextField(LookAtMin, out Settings.MinRotationThreshold);
+                                LookAtMin = FloatTextField(LookAtMin, out CurrentWrangler.Settings.MinRotationThreshold);
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
-                            FloatSlider(ref LookAtMin, ref Settings.MinRotationThreshold, 0, 360);
+                            FloatSlider(ref LookAtMin, ref CurrentWrangler.Settings.MinRotationThreshold, 0, 360);
                             //Settings.MinRotationThreshold = GUILayout.HorizontalSlider(Settings.MinRotationThreshold, 0, 360);
 
-                            GUILayout.Label(Persist.PrevRot.eulerAngles.ToString());
+                            GUILayout.Label(CurrentWrangler.CurrentCamera.rotation.eulerAngles.ToString());
                             GUILayout.BeginHorizontal(); {
 
-                                GUILayout.Label(Camera.main.transform.rotation.eulerAngles.ToString());
+                                GUILayout.Label(CurrentWrangler.CurrentCamera.rotation.eulerAngles.ToString());
                                 if (!FollowCam.IsActive) {
                                     if (GUILayout.Button("Copy")) {
-                                        Transform LookAtBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)Settings.LookAtBone);
+                                        Transform LookAtBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)CurrentWrangler.Settings.LookAtBone);
                                         float BoneZ = LookAtBoneTransform.position.z;
                                         float HitPoint;
-                                        Ray CameraRay = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+                                        Ray CameraRay = new Ray(CurrentWrangler.CurrentCamera.position, CurrentWrangler.CurrentCamera.forward);
                                         Plane CollisionPlane = new Plane(new Vector3(0, 0, BoneZ), new Vector3(1, 1, BoneZ), new Vector3(0, 1, BoneZ));
                                         CollisionPlane.Raycast(CameraRay, out HitPoint);
                                         Vector3 GlobalLookAtPos = CameraRay.GetPoint(HitPoint);
-                                        if (Settings.LookAtStaticX) {
-                                            Settings.LookAtOffset_X = GlobalLookAtPos.x;
+                                        if (CurrentWrangler.Settings.LookAtStaticX) {
+                                            CurrentWrangler.Settings.LookAtOffset_X = GlobalLookAtPos.x;
                                         } else {
-                                            Settings.LookAtOffset_X = GlobalLookAtPos.x - LookAtBoneTransform.position.x;
+                                            CurrentWrangler.Settings.LookAtOffset_X = GlobalLookAtPos.x - LookAtBoneTransform.position.x;
                                         }
-                                        if (Settings.LookAtStaticY) {
-                                            Settings.LookAtOffset_Y = GlobalLookAtPos.y;
+                                        if (CurrentWrangler.Settings.LookAtStaticY) {
+                                            CurrentWrangler.Settings.LookAtOffset_Y = GlobalLookAtPos.y;
                                         } else {
-                                            Settings.LookAtOffset_Y = GlobalLookAtPos.y - LookAtBoneTransform.position.y;
+                                            CurrentWrangler.Settings.LookAtOffset_Y = GlobalLookAtPos.y - LookAtBoneTransform.position.y;
                                         }
                                         ReloadTempStrings();
                                     }
@@ -336,7 +338,7 @@ namespace VNyan_FollowCam {
                                 }
                             } GUILayout.EndHorizontal();
                             GUILayout.Label("");
-                            GUILayout.Label(Persist.LookAtTrgPos.ToString());
+                            GUILayout.Label(CurrentWrangler.Persist_LookAtTrgPos.ToString());
                             
                         }
                         GUILayout.EndVertical();
@@ -354,10 +356,10 @@ namespace VNyan_FollowCam {
                         if (GUILayout.Button(Bone.ToString())) {
                             switch (BoneSelector) {
                                 case 1:
-                                    Settings.BaseBone = Bone;
+                                    CurrentWrangler.Settings.BaseBone = Bone;
                                     break;
                                 case 2:
-                                    Settings.LookAtBone = Bone;
+                                    CurrentWrangler.Settings.LookAtBone = Bone;
                                     break;
                             }
                             BoneSelector = 0;

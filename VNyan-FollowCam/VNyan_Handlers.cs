@@ -21,8 +21,9 @@ namespace VNyan_FollowCam {
             Settings.BaseBone = UnityEngine.HumanBodyBones.Hips;
             Settings.LookAtBone = UnityEngine.HumanBodyBones.Head;
             FollowCam.SetActive(false);
-            SettingsFile.Load(SettingsFile.SettingsFilename, false);
+            SettingsFile.Load(SettingsFile.SettingsFilename, FollowCam.objMainCamera, false);
             GUI.SetActive(false);
+            GUI.CurrentWrangler = FollowCam.objMainCamera;
             VNyanInterface.VNyanInterface.VNyanUI.registerPluginButton("FollowCam", this);
             VNyanInterface.VNyanInterface.VNyanTrigger.registerTriggerListener(this);
             GlobalSettings.LastProfileName = "";
@@ -50,7 +51,7 @@ namespace VNyan_FollowCam {
                         case "_rotationrel": Settings.RotationMode = CameraPosMode.Relative; break;
                         case "_load":
                             if (File.Exists(text1)) {
-                                SettingsFile.Load(text1);
+                                SettingsFile.Load(text1, FollowCam.objMainCamera);
                                 if (int1 == 1) {
                                     FollowCam.SetActive(true);
                                 }
