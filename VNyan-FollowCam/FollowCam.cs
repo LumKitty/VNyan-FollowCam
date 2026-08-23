@@ -8,23 +8,23 @@ namespace VNyan_FollowCam {
     internal class FollowCam : MonoBehaviour {
         internal static GameObject objFollowCam = new GameObject("FollowCam", typeof(FollowCam));
         internal static CameraWrangler objMainCamera = new CameraWrangler(Camera.main.transform, Settings);
-        internal static bool IsActive => objFollowCam.activeSelf;
-        internal static void SetActive(bool Active) {
+        //internal static bool IsActive => objFollowCam.activeSelf;
+        /*internal static void SetActive(bool Active) {
             if (Active && !objFollowCam.activeSelf) {
                 objFollowCam.SetActive(true);
             } else if (!Active && objFollowCam.activeSelf) {
                 objFollowCam.SetActive(false);
             }
-        }
+        }*/
 
         public void OnEnable() {
-            objMainCamera.Enable();
-            VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_enabled", 1f);
+            //objMainCamera.Enable();
+            //VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_enabled", 1f);
         }
 
         public void OnDisable() {
-            objMainCamera.Disable();
-            VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_enabled", 0f);
+            //objMainCamera.Disable();
+            //VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_enabled", 0f);
         }
 
         public void LateUpdate() { 

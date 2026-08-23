@@ -20,7 +20,6 @@ namespace VNyan_FollowCam {
         public void InitializePlugin() {
             Settings.BaseBone = UnityEngine.HumanBodyBones.Hips;
             Settings.LookAtBone = UnityEngine.HumanBodyBones.Head;
-            FollowCam.SetActive(false);
             SettingsFile.Load(SettingsFile.SettingsFilename, FollowCam.objMainCamera, false);
             GUI.SetActive(false);
             GUI.CurrentWrangler = FollowCam.objMainCamera;
@@ -41,8 +40,8 @@ namespace VNyan_FollowCam {
                         return;
                     }
                     switch (name) {
-                        case "_enable": FollowCam.SetActive(true); break;
-                        case "_disable": FollowCam.SetActive(false); break;
+                        case "_enable": FollowCam.objMainCamera.Enable(); break;
+                        case "_disable": FollowCam.objMainCamera.Disable(); break;
                         case "_offsetoff": Settings.OffsetMode = CameraPosMode.Off; break;
                         case "_offsetabs": Settings.OffsetMode = CameraPosMode.Absolute; break;
                         case "_offsetrel": Settings.OffsetMode = CameraPosMode.Relative; break;
@@ -53,7 +52,7 @@ namespace VNyan_FollowCam {
                             if (File.Exists(text1)) {
                                 SettingsFile.Load(text1, FollowCam.objMainCamera);
                                 if (int1 == 1) {
-                                    FollowCam.SetActive(true);
+                                    FollowCam.objMainCamera.Enable();
                                 }
                             }
                             break;

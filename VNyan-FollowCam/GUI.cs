@@ -112,7 +112,7 @@ namespace VNyan_FollowCam {
                     GUILayout.BeginHorizontal();
                     ActivateButtonStyle = new GUIStyle("button");
                     DeactivateButtonStyle = new GUIStyle("button");
-                    if (FollowCam.IsActive) { 
+                    if (CurrentWrangler.Enabled) { 
                         ActivateButtonStyle.normal.textColor  = new Color(1, 0.5f, 0.5f);
                         ActivateButtonStyle.hover.textColor   = ActivateButtonStyle.normal.textColor;
                         ActivateButtonStyle.active.textColor  = ActivateButtonStyle.normal.textColor;
@@ -123,8 +123,8 @@ namespace VNyan_FollowCam {
                         DeactivateButtonStyle.active.textColor  = DeactivateButtonStyle.normal.textColor;
                         DeactivateButtonStyle.focused.textColor = DeactivateButtonStyle.normal.textColor;
                     }
-                    if (GUILayout.Button("Activate",   ActivateButtonStyle))   { FollowCam.SetActive(true); }
-                    if (GUILayout.Button("Deactivate", DeactivateButtonStyle)) { FollowCam.SetActive(false); }
+                    if (GUILayout.Button("Activate",   ActivateButtonStyle))   { CurrentWrangler.Enable(); }
+                    if (GUILayout.Button("Deactivate", DeactivateButtonStyle)) { CurrentWrangler.Disable(); }
                     GUILayout.FlexibleSpace();
                     if (!String.IsNullOrEmpty(_Settings.GlobalSettings.LastProfileName)) {
                         if (GUILayout.Button("QLoad")) {
@@ -218,7 +218,7 @@ namespace VNyan_FollowCam {
                             GUILayout.Label($"FCam: {CurrentWrangler.CurrentCamera.position.ToString()}");
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label($"VCam: {CurrentWrangler.CurrentCamera.position.ToString()}");
-                                if (!FollowCam.IsActive) {
+                                if (!FollowCam.objMainCamera.Enabled) {
                                     if (GUILayout.Button("Copy")) {
                                         Transform CopyBaseBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)CurrentWrangler.Settings.BaseBone);
                                         if (CurrentWrangler.Settings.StaticX) {
@@ -313,7 +313,7 @@ namespace VNyan_FollowCam {
                             GUILayout.BeginHorizontal(); {
 
                                 GUILayout.Label(CurrentWrangler.CurrentCamera.rotation.eulerAngles.ToString());
-                                if (!FollowCam.IsActive) {
+                                if (!FollowCam.objMainCamera.Enabled) {
                                     if (GUILayout.Button("Copy")) {
                                         Transform LookAtBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)CurrentWrangler.Settings.LookAtBone);
                                         float BoneZ = LookAtBoneTransform.position.z;
