@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
-using static UnityEngine.Networking.UnityWebRequest;
-//using static VNyan_FollowCam._Settings;
+using static VNyan_FollowCam.VNyan_Handlers;
 
 namespace VNyan_FollowCam {
     internal class GUI : MonoBehaviour {
@@ -17,7 +16,9 @@ namespace VNyan_FollowCam {
         private static int DHeight = MinHeight;
         internal static GameObject objGUI = new GameObject("FollowCam_GUI", typeof(GUI));
 
-        internal static CameraWrangler CurrentWrangler = new CameraWrangler(Camera.main.transform, _Settings.Settings);
+        //internal static CameraWrangler CurrentWrangler = new CameraWrangler(Camera.main.transform, _Settings.GlobalSettings.MainCameraSettingsFile, "Dummy - seeing this is bad!");
+        internal static CameraWrangler CurrentWrangler => FollowCam.objCameras[CurrentCamera].Wrangler;
+
 
         internal static bool IsActive => objGUI.activeSelf;
         internal static void SetActive(bool Active) { objGUI.SetActive(Active); }
@@ -37,6 +38,9 @@ namespace VNyan_FollowCam {
         internal string LookAtLerp = "";
         internal string LookAtMin = "";
 
+        internal static int CurrentCamera = 0;
+        internal string NewCameraName = "";
+
         private static GUIStyle ActivateButtonStyle = new GUIStyle();
         private static GUIStyle DeactivateButtonStyle = new GUIStyle();
 
@@ -53,7 +57,7 @@ namespace VNyan_FollowCam {
         };
         
         void OnDisable() {
-            SettingsFile.Save();
+            SettingsFile.Save(CurrentWrangler.SettingsFileName, CurrentWrangler);
         }
         void OnEnable() {
             BoneSelector = 0;
@@ -99,16 +103,29 @@ namespace VNyan_FollowCam {
                     //Transform LookAtBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)Settings.LookAtBone);
 
                     GUILayout.BeginHorizontal();
-                    if (String.IsNullOrEmpty(_Settings.GlobalSettings.LastProfileName)) {
+                    GUILayout.Label($"{CurrentCamera}/{FollowCam.objCameras.Count}: {CurrentWrangler.Name}");
+                    if (GUILayout.Button("<") && (CurrentCamera >0)) { CurrentCamera--; }
+                    if (GUILayout.Button(">") && (CurrentCamera < FollowCam.objCameras.Count-1)) { CurrentCamera++; }
+                    NewCameraName = GUILayout.TextField(NewCameraName);
+                    if (GUILayout.Button("+")) { 
+                        int result = FollowCam.AttachSpoutCamera(NewCameraName, ""); 
+                        if (result >0) { CurrentCamera = result; }
+                    }
+                    GUILayout.EndHorizontal();
+
+                    Log("GUI: TitleBar", 69);
+                    GUILayout.BeginHorizontal();
+                    if (String.IsNullOrEmpty(CurrentWrangler.SettingsFileName)) {
                         GUILayout.Label("FollowCam config");
                     } else {
-                        GUILayout.Label(System.IO.Path.GetFileName(_Settings.GlobalSettings.LastProfileName));
+                        GUILayout.Label(System.IO.Path.GetFileName(CurrentWrangler.SettingsFileName));
                     }
                     GUILayout.FlexibleSpace();
                     DWidth = (int)GUILayout.HorizontalSlider((float)DWidth, MinWidth, MaxWidth, GUILayout.MaxWidth(200));
                     if (GUILayout.Button(" X ")) { SetActive(false); }
                     GUILayout.EndHorizontal();
 
+                    Log("GUI: Activate/Deactivate", 69);
                     GUILayout.BeginHorizontal();
                     ActivateButtonStyle = new GUIStyle("button");
                     DeactivateButtonStyle = new GUIStyle("button");
@@ -125,14 +142,15 @@ namespace VNyan_FollowCam {
                     }
                     if (GUILayout.Button("Activate",   ActivateButtonStyle))   { CurrentWrangler.Enable(); }
                     if (GUILayout.Button("Deactivate", DeactivateButtonStyle)) { CurrentWrangler.Disable(); }
+                    Log("GUI: Load/Save", 69);
                     GUILayout.FlexibleSpace();
-                    if (!String.IsNullOrEmpty(_Settings.GlobalSettings.LastProfileName)) {
+                    if (!String.IsNullOrEmpty(CurrentWrangler.SettingsFileName)) {
                         if (GUILayout.Button("QLoad")) {
-                            SettingsFile.Load(_Settings.GlobalSettings.LastProfileName, CurrentWrangler);
+                            SettingsFile.Load(CurrentWrangler.SettingsFileName, CurrentWrangler);
                             ReloadTempStrings();
                         }
                         if (GUILayout.Button("QSave")) {
-                            SettingsFile.Save(_Settings.GlobalSettings.LastProfileName, CurrentWrangler);
+                            SettingsFile.Save(CurrentWrangler.SettingsFileName, CurrentWrangler);
                             ReloadTempStrings();
                         }
                     }
@@ -156,6 +174,7 @@ namespace VNyan_FollowCam {
 
                     GUILayout.BeginHorizontal(); {
                         GUILayout.BeginVertical(); {
+                            Log("GUI: Camera Offset", 69);
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label("Camera Offset");
                                 if (GUILayout.Button(CurrentWrangler.Settings.BaseBone.ToString())) { BoneSelector = 1; }
@@ -198,6 +217,7 @@ namespace VNyan_FollowCam {
                             }
                             GUILayout.EndHorizontal();
 
+                            Log("GUI: Camera Thresholds", 69);
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label($"Movement Lerp: ");
                                 OffsetLerp = FloatTextField(OffsetLerp, out CurrentWrangler.Settings.MaxMovementDistance);
@@ -215,10 +235,11 @@ namespace VNyan_FollowCam {
                             FloatSlider(ref OffsetMin, ref CurrentWrangler.Settings.MinMovementThreshold, 0, 1);
                             //Settings.MinMovementThreshold = GUILayout.HorizontalSlider(Settings.MinMovementThreshold, 0, 1);
 
+                            Log("GUI: Camera status", 69);
                             GUILayout.Label($"FCam: {CurrentWrangler.CurrentCamera.position.ToString()}");
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label($"VCam: {CurrentWrangler.CurrentCamera.position.ToString()}");
-                                if (!FollowCam.objMainCamera.Enabled) {
+                                if (!CurrentWrangler.Enabled) {
                                     if (GUILayout.Button("Copy")) {
                                         Transform CopyBaseBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)CurrentWrangler.Settings.BaseBone);
                                         if (CurrentWrangler.Settings.StaticX) {
@@ -313,7 +334,7 @@ namespace VNyan_FollowCam {
                             GUILayout.BeginHorizontal(); {
 
                                 GUILayout.Label(CurrentWrangler.CurrentCamera.rotation.eulerAngles.ToString());
-                                if (!FollowCam.objMainCamera.Enabled) {
+                                if (!CurrentWrangler.Enabled) {
                                     if (GUILayout.Button("Copy")) {
                                         Transform LookAtBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)CurrentWrangler.Settings.LookAtBone);
                                         float BoneZ = LookAtBoneTransform.position.z;

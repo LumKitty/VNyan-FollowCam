@@ -14,7 +14,9 @@ namespace VNyan_FollowCam {
     }
 
     internal class __GlobalSettings {
-        public string LastProfileName = "";
+        internal static readonly String SettingsFilename = VNyanInterface.VNyanInterface.VNyanSettings.getProfilePath() + "\\FollowCam.json";
+        public string MainCameraSettingsFile = VNyanInterface.VNyanInterface.VNyanSettings.getProfilePath() + "\\FollowCam-MainCam.json";
+        internal int LogLevel = 4;
     }
     
     public class __Settings {
@@ -54,9 +56,8 @@ namespace VNyan_FollowCam {
     }
 
     internal static class SettingsFile {
-        internal static readonly String SettingsFilename = VNyanInterface.VNyanInterface.VNyanSettings.getProfilePath() + "\\FollowCam.json";
         
-        internal static void Load(string FileName, CameraWrangler CurrentCameraWrangler, bool UpdateLastProfile = true) {
+        internal static bool Load(string FileName, CameraWrangler CurrentWrangler, bool UpdateLastProfile = true) {
             try {
                 if (File.Exists(FileName)) {
                     VNyan_Handlers.Log($"Loading {FileName}");
@@ -64,28 +65,33 @@ namespace VNyan_FollowCam {
                     if (TempSettings != null) {
                         bool GUIStatus = GUI.IsActive;
                         if (GUIStatus) { GUI.SetActive(false); }
-                        CurrentCameraWrangler.Settings = TempSettings;
-                        if (UpdateLastProfile) { _Settings.GlobalSettings.LastProfileName = FileName; }
+                        CurrentWrangler.Settings = TempSettings;
+                        if (UpdateLastProfile) { CurrentWrangler.SettingsFileName = FileName; }
                         GUI.SetActive(GUIStatus);
+                        return true;
+                    } else {
+                        VNyan_Handlers.Log($"Invalid settings file: {FileName}");
                     }
                 } else {
                     VNyan_Handlers.Log($"Could not find {FileName}");
                 }
+                return false;
             } catch (Exception ex) {
                 VNyan_Handlers.Log(ex.ToString());
+                return false;
             }
         }
-        internal static void Save(string FileName, CameraWrangler CurrentCameraWrangler, bool UpdateLastProfile = true) {
+        internal static void Save(string FileName, CameraWrangler CurrentWrangler, bool UpdateLastProfile = true) {
             try {
                 VNyan_Handlers.Log($"Saving to {FileName}");
-                File.WriteAllText(FileName, JsonConvert.SerializeObject(CurrentCameraWrangler.Settings,Formatting.Indented));
-                if (UpdateLastProfile) { _Settings.GlobalSettings.LastProfileName = FileName; }
+                File.WriteAllText(FileName, JsonConvert.SerializeObject(CurrentWrangler.Settings,Formatting.Indented));
+                if (UpdateLastProfile) { CurrentWrangler.SettingsFileName = FileName; }
             } catch (Exception ex) {
                 VNyan_Handlers.Log(ex.ToString());
             }
         }
 
-        internal static void Load() { Load(SettingsFilename, FollowCam.objMainCamera, false); }
-        internal static void Save() { Save(SettingsFilename, FollowCam.objMainCamera); }
+        //internal static void Load() { Load(SettingsFilename, FollowCam.objMainCamera, false); }
+        //internal static void Save() { Save(SettingsFilename, FollowCam.objMainCamera); }
     }
 }

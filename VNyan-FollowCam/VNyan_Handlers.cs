@@ -12,20 +12,23 @@ namespace VNyan_FollowCam {
         public string Title => PluginName + " " + Version;
         public string Author { get; } = "LumKitty";
         public string Website { get; } = "https://lum.uk/";
-
-        internal static void Log(string Message) {
-            UnityEngine.Debug.Log($"[FollowCam] {Message}");
+        
+        internal static void Log(string Message, int LogLevel = 1) {
+            if (LogLevel <= _Settings.GlobalSettings.LogLevel) {
+                UnityEngine.Debug.Log($"[FollowCam] {Message}");
+            }
         }
 
         public void InitializePlugin() {
             Settings.BaseBone = UnityEngine.HumanBodyBones.Hips;
             Settings.LookAtBone = UnityEngine.HumanBodyBones.Head;
-            SettingsFile.Load(SettingsFile.SettingsFilename, FollowCam.objMainCamera, false);
+            //SettingsFile.Load(SettingsFile.SettingsFilename, FollowCam.objMainCamera, false);
             GUI.SetActive(false);
-            GUI.CurrentWrangler = FollowCam.objMainCamera;
+            FollowCam.objCameras.Add(new MainCamera(_Settings.GlobalSettings.MainCameraSettingsFile));
+            //GUI.CurrentWrangler = FollowCam.objCameras[0].Wrangler;
             VNyanInterface.VNyanInterface.VNyanUI.registerPluginButton("FollowCam", this);
             VNyanInterface.VNyanInterface.VNyanTrigger.registerTriggerListener(this);
-            GlobalSettings.LastProfileName = "";
+            Log($"Assembly name: {typeof(FollowCam).AssemblyQualifiedName}");
         }
 
         public void triggerCalled(string name, int int1, int int2, int int3, string text1, string text2, string text3) {
@@ -40,19 +43,19 @@ namespace VNyan_FollowCam {
                         return;
                     }
                     switch (name) {
-                        case "_enable": FollowCam.objMainCamera.Enable(); break;
-                        case "_disable": FollowCam.objMainCamera.Disable(); break;
-                        case "_offsetoff": Settings.OffsetMode = CameraPosMode.Off; break;
-                        case "_offsetabs": Settings.OffsetMode = CameraPosMode.Absolute; break;
-                        case "_offsetrel": Settings.OffsetMode = CameraPosMode.Relative; break;
-                        case "_rotationoff": Settings.RotationMode = CameraPosMode.Off; break;
-                        case "_rotationabs": Settings.RotationMode = CameraPosMode.Absolute; break;
-                        case "_rotationrel": Settings.RotationMode = CameraPosMode.Relative; break;
+                        case "_enable": FollowCam.objCameras[0].Wrangler.Enable(); break;
+                        case "_disable": FollowCam.objCameras[0].Wrangler.Disable(); break;
+                        case "_offsetoff": FollowCam.objCameras[0].Wrangler.Settings.OffsetMode = CameraPosMode.Off; break;
+                        case "_offsetabs": FollowCam.objCameras[0].Wrangler.Settings.OffsetMode = CameraPosMode.Absolute; break;
+                        case "_offsetrel": FollowCam.objCameras[0].Wrangler.Settings.OffsetMode = CameraPosMode.Relative; break;
+                        case "_rotationoff": FollowCam.objCameras[0].Wrangler.Settings.RotationMode = CameraPosMode.Off; break;
+                        case "_rotationabs": FollowCam.objCameras[0].Wrangler.Settings.RotationMode = CameraPosMode.Absolute; break;
+                        case "_rotationrel": FollowCam.objCameras[0].Wrangler.Settings.RotationMode = CameraPosMode.Relative; break;
                         case "_load":
                             if (File.Exists(text1)) {
-                                SettingsFile.Load(text1, FollowCam.objMainCamera);
-                                if (int1 == 1) {
-                                    FollowCam.objMainCamera.Enable();
+                                SettingsFile.Load(text1, FollowCam.objCameras[0].Wrangler);
+                                if (int2 == 1) {
+                                    FollowCam.objCameras[0].Wrangler.Enable();
                                 }
                             }
                             break;

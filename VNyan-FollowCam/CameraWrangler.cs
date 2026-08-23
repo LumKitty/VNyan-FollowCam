@@ -12,8 +12,10 @@ namespace VNyan_FollowCam {
         internal float Persist_MinMovementThreshold;
         internal float Persist_MinRotationThreshold;
 
+        public string SettingsFileName;
         public __Settings Settings;
         public Transform CurrentCamera;
+        public string Name { get; }
 
         internal GameObject Temp_Camera = new GameObject(); // Mainly to avoid creating and destroying these every frame!
         internal GameObject Temp_CameraLookAt = new GameObject(); //
@@ -22,11 +24,15 @@ namespace VNyan_FollowCam {
 
         public bool Enabled { get { return _Enabled; } }
 
-        public CameraWrangler(Transform _CurrentCamera, __Settings _Settings) {
-            Settings = _Settings;
+        public CameraWrangler(Transform _CurrentCamera, string _SettingsFileName, string _Name) {
+            SettingsFileName = _SettingsFileName;
+            if (!SettingsFile.Load(_SettingsFileName, this)) {
+                Settings = new __Settings();
+            }
             CurrentCamera = _CurrentCamera;
             Persist_PrevPos = CurrentCamera.position;
             Persist_PrevRot = CurrentCamera.rotation;
+            Name = _Name;
         }
         
         public void Enable() {
