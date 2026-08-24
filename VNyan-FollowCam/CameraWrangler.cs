@@ -75,16 +75,21 @@ namespace VNyan_FollowCam {
 
                     switch (Settings.OffsetMode) {
                         case CameraPosMode.Off:
-                            Temp_Camera.transform.position = CurrentCamera.transform.position;
+                            Persist_TrgPos = CurrentCamera.transform.position;
                             break;
                         case CameraPosMode.Absolute:
-                            Temp_Camera.transform.position = BonePos + Settings.OffsetPosition;
+                            Persist_TrgPos = BonePos + Settings.OffsetPosition;
                             break;
                         case CameraPosMode.Relative:
-                            Temp_Camera.transform.position = BonePos + (BoneRot * Settings.OffsetPosition);
+                            Persist_TrgPos = BonePos + (BoneRot * Settings.OffsetPosition);
                             break;
                     }
-                    Persist_TrgPos = Temp_Camera.transform.position;
+                    if (Settings.StaticX) { Persist_TrgPos.x = Settings.OffsetPosition.x; }
+                    if (Settings.StaticY) { Persist_TrgPos.y = Settings.OffsetPosition.y; }
+                    if (Settings.StaticZ) { Persist_TrgPos.z = Settings.OffsetPosition.z; }
+
+                    Temp_Camera.transform.position = Persist_TrgPos;
+                    
                     // Handle movement distance limit
                     if ((Persist_PrevPos - Temp_Camera.transform.position).magnitude > Persist_MinMovementThreshold) {
                         CurrentCamera.position = Vector3.Lerp(Persist_PrevPos, Temp_Camera.transform.position, Settings.MaxMovementDistance);
@@ -94,12 +99,6 @@ namespace VNyan_FollowCam {
                         CurrentCamera.position = Persist_PrevPos;
                         Persist_MinMovementThreshold = Settings.MinMovementThreshold;
                     }
-
-                    VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_camx", Persist_PrevPos.x);
-                    VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_camy", Persist_PrevPos.y);
-                    VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_camz", Persist_PrevPos.z);
-
-
 
                     // Get target lookat angle
                     switch (Settings.RotationMode) {
@@ -130,10 +129,6 @@ namespace VNyan_FollowCam {
                         CurrentCamera.transform.rotation = Persist_PrevRot;
                         Persist_MinRotationThreshold = Settings.MinRotationThreshold;
                     }
-                    VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_rotw", Persist_PrevRot.w);
-                    VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_rotx", Persist_PrevRot.x);
-                    VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_roty", Persist_PrevRot.y);
-                    VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_rotz", Persist_PrevRot.z);
                 }
             } catch (Exception ex) {
                 VNyan_Handlers.Log(ex.ToString());
