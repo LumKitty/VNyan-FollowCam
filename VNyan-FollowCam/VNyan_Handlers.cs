@@ -8,27 +8,54 @@ namespace VNyan_FollowCam {
 
     public class VNyan_Handlers : IVNyanPluginManifest, IButtonClickedHandler, ITriggerHandler {
         public string PluginName { get; } = "VNyan FollowCam";
-        public string Version { get; } = "0.3-beta";
+        public string Version { get; } = "0.4-beta";
         public string Title => PluginName + " " + Version;
         public string Author { get; } = "LumKitty";
         public string Website { get; } = "https://lum.uk/";
-        
+
+        internal static System.Reflection.MethodInfo? _VRnyan_EnableFollowCam;
+        internal static System.Reflection.MethodInfo? _VRnyan_DisableFollowCam;
+        internal static bool VRnyanConnectionAttempted = false;
+
         internal static void Log(string Message, int LogLevel = 1) {
             if (LogLevel <= _Settings.GlobalSettings.LogLevel) {
                 UnityEngine.Debug.Log($"[FollowCam] {Message}");
             }
         }
 
+        internal static void ConnectVRnyan() {
+            Log("Looking for VRnyan");
+            var type = Type.GetType("VRnyan.VRnyan, VRnyan", throwOnError: false);
+            if (type != null) {
+                Log("Found VRnyan, getting methods");
+                _VRnyan_EnableFollowCam = type.GetMethod("EnableFollowCam");
+                _VRnyan_DisableFollowCam = type.GetMethod("DisableFollowCam");
+                if (_VRnyan_EnableFollowCam == null || _VRnyan_DisableFollowCam == null) {
+                    Log("Couldn't find position methods");
+                } else {
+                    Log("Got methods");
+                }
+            } else {
+                Log("Did not find followcam assembly");
+            }
+        }
+
         public void InitializePlugin() {
-            Settings.BaseBone = UnityEngine.HumanBodyBones.Hips;
-            Settings.LookAtBone = UnityEngine.HumanBodyBones.Head;
-            //SettingsFile.Load(SettingsFile.SettingsFilename, FollowCam.objMainCamera, false);
+            SettingsFile.LoadGlobal();
             GUI.SetActive(false);
             FollowCam.objCameras.Add(new MainCamera(_Settings.GlobalSettings.MainCameraSettingsFile));
             //GUI.CurrentWrangler = FollowCam.objCameras[0].Wrangler;
             VNyanInterface.VNyanInterface.VNyanUI.registerPluginButton("FollowCam", this);
             VNyanInterface.VNyanInterface.VNyanTrigger.registerTriggerListener(this);
             Log($"Assembly name: {typeof(FollowCam).AssemblyQualifiedName}");
+            ConnectVRnyan();
+        }
+
+        internal void VRnyan_EnableFollowCam() {
+            _VRnyan_EnableFollowCam?.Invoke(null, null);
+        }
+        internal void VRnyan_DisableFollowCam() {
+            _VRnyan_EnableFollowCam?.Invoke(null, null);
         }
 
         public void triggerCalled(string name, int int1, int int2, int int3, string text1, string text2, string text3) {

@@ -11,7 +11,7 @@ namespace VNyan_FollowCam {
         internal const string CloseTriggerValue = "uk.lum.followcam";
         private const int MinWidth = 426;
         private const int MaxWidth = 1920;
-        private const int MinHeight = 400;
+        private const int MinHeight = 424;
         private static int DWidth = MinWidth;
         private static int DHeight = MinHeight;
         internal static GameObject objGUI = new GameObject("FollowCam_GUI", typeof(GUI));
@@ -57,12 +57,18 @@ namespace VNyan_FollowCam {
         };
         
         void OnDisable() {
-            SettingsFile.Save(CurrentWrangler.SettingsFileName, CurrentWrangler);
+            if (FollowCam.objCameras.Count > 0) {
+                SettingsFile.Save(CurrentWrangler.SettingsFileName, CurrentWrangler);
+                _Settings.GlobalSettings.MainCameraSettingsFile = FollowCam.objCameras[0].Wrangler.SettingsFileName;
+                SettingsFile.SaveGlobal();
+            }
         }
         void OnEnable() {
-            BoneSelector = 0;
-            ReloadTempStrings();
-            VNyanInterface.VNyanInterface.VNyanTrigger.callTrigger(CloseTriggerName, 0, 0, 0, CloseTriggerValue, "", "");
+            if (FollowCam.objCameras.Count > 0) {
+                BoneSelector = 0;
+                ReloadTempStrings();
+                VNyanInterface.VNyanInterface.VNyanTrigger.callTrigger(CloseTriggerName, 0, 0, 0, CloseTriggerValue, "", "");
+            }
         }
 
         void ReloadTempStrings() {
@@ -103,14 +109,16 @@ namespace VNyan_FollowCam {
                     //Transform LookAtBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)Settings.LookAtBone);
 
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label($"{CurrentCamera}/{FollowCam.objCameras.Count}: {CurrentWrangler.Name}");
+                    GUILayout.Label($"{CurrentCamera}/{FollowCam.objCameras.Count-1}: {CurrentWrangler.Name}");
                     if (GUILayout.Button("<") && (CurrentCamera >0)) { CurrentCamera--; }
                     if (GUILayout.Button(">") && (CurrentCamera < FollowCam.objCameras.Count-1)) { CurrentCamera++; }
-                    NewCameraName = GUILayout.TextField(NewCameraName);
+                    GUILayout.FlexibleSpace();
+                    NewCameraName = GUILayout.TextField(NewCameraName, GUILayout.MinWidth(50));
                     if (GUILayout.Button("+")) { 
                         int result = FollowCam.AttachSpoutCamera(NewCameraName, ""); 
                         if (result >0) { CurrentCamera = result; }
                     }
+                    if (GUILayout.Button(" X ")) { SetActive(false); }
                     GUILayout.EndHorizontal();
 
                     Log("GUI: TitleBar", 69);
@@ -122,7 +130,6 @@ namespace VNyan_FollowCam {
                     }
                     GUILayout.FlexibleSpace();
                     DWidth = (int)GUILayout.HorizontalSlider((float)DWidth, MinWidth, MaxWidth, GUILayout.MaxWidth(200));
-                    if (GUILayout.Button(" X ")) { SetActive(false); }
                     GUILayout.EndHorizontal();
 
                     Log("GUI: Activate/Deactivate", 69);

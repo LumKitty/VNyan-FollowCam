@@ -14,9 +14,10 @@ namespace VNyan_FollowCam {
     }
 
     internal class __GlobalSettings {
-        internal static readonly String SettingsFilename = VNyanInterface.VNyanInterface.VNyanSettings.getProfilePath() + "\\FollowCam.json";
+        internal static string SettingsFileName = VNyanInterface.VNyanInterface.VNyanSettings.getProfilePath() + "\\FollowCam.json";
         public string MainCameraSettingsFile = VNyanInterface.VNyanInterface.VNyanSettings.getProfilePath() + "\\FollowCam-MainCam.json";
         internal int LogLevel = 4;
+
     }
     
     public class __Settings {
@@ -51,12 +52,12 @@ namespace VNyan_FollowCam {
     }
 
     internal static class _Settings {
-        internal static __Settings Settings = new __Settings();
+        //internal static __Settings Settings = new __Settings();
         internal static __GlobalSettings GlobalSettings = new __GlobalSettings();
     }
 
     internal static class SettingsFile {
-        
+
         internal static bool Load(string FileName, CameraWrangler CurrentWrangler, bool UpdateLastProfile = true) {
             try {
                 if (File.Exists(FileName)) {
@@ -84,14 +85,40 @@ namespace VNyan_FollowCam {
         internal static void Save(string FileName, CameraWrangler CurrentWrangler, bool UpdateLastProfile = true) {
             try {
                 VNyan_Handlers.Log($"Saving to {FileName}");
-                File.WriteAllText(FileName, JsonConvert.SerializeObject(CurrentWrangler.Settings,Formatting.Indented));
+                File.WriteAllText(FileName, JsonConvert.SerializeObject(CurrentWrangler.Settings, Formatting.Indented));
                 if (UpdateLastProfile) { CurrentWrangler.SettingsFileName = FileName; }
             } catch (Exception ex) {
                 VNyan_Handlers.Log(ex.ToString());
             }
         }
 
-        //internal static void Load() { Load(SettingsFilename, FollowCam.objMainCamera, false); }
-        //internal static void Save() { Save(SettingsFilename, FollowCam.objMainCamera); }
+        internal static void SaveGlobal() {
+            try {
+                VNyan_Handlers.Log($"Saving to {__GlobalSettings.SettingsFileName}");
+                File.WriteAllText(__GlobalSettings.SettingsFileName, JsonConvert.SerializeObject(_Settings.GlobalSettings, Formatting.Indented));
+            } catch (Exception ex) {
+                VNyan_Handlers.Log(ex.ToString());
+            }
+        }
+
+        internal static bool LoadGlobal() {
+            try {
+                if (File.Exists(__GlobalSettings.SettingsFileName)) {
+                    VNyan_Handlers.Log($"Loading {__GlobalSettings.SettingsFileName}");
+                    __GlobalSettings? TempSettings = JsonConvert.DeserializeObject<__GlobalSettings>(File.ReadAllText(__GlobalSettings.SettingsFileName));
+                    if (TempSettings != null) {
+                        _Settings.GlobalSettings = TempSettings;
+                    } else {
+                        VNyan_Handlers.Log($"Invalid settings file: {__GlobalSettings.SettingsFileName}");
+                    }
+                } else {
+                    VNyan_Handlers.Log($"Could not find {__GlobalSettings.SettingsFileName}");
+                }
+                return false;
+            } catch (Exception ex) {
+                VNyan_Handlers.Log(ex.ToString());
+                return false;
+            }
+        }
     }
 }
