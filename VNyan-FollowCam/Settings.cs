@@ -21,12 +21,12 @@ namespace VNyan_FollowCam {
     }
     
     public class __Settings {
-        internal HumanBodyBones BaseBone;
-        internal HumanBodyBones LookAtBone;
-        public string CameraBoneBase { get { return BaseBone.ToString(); } set { Enum.TryParse<HumanBodyBones>(value, out BaseBone); } }
-        public string LookAt { get { return LookAtBone.ToString(); } set { Enum.TryParse<HumanBodyBones>(value, out LookAtBone); } }
+        [JsonIgnore] public HumanBodyBones BaseBone;
+        [JsonIgnore] public HumanBodyBones LookAtBone;
+        public string CameraBoneBase { get { return BaseBone.ToString();   } set { Enum.TryParse<HumanBodyBones>(value, out BaseBone); } }
+        public string LookAt         { get { return LookAtBone.ToString(); } set { Enum.TryParse<HumanBodyBones>(value, out LookAtBone); } }
 
-        internal Vector3 OffsetPosition = new Vector3();
+        [JsonIgnore] public Vector3 OffsetPosition = new Vector3();
         public float Offset_X { get { return OffsetPosition.x; } set { OffsetPosition.x = value; } }
         public float Offset_Y { get { return OffsetPosition.y; } set { OffsetPosition.y = value; } }
         public float Offset_Z { get { return OffsetPosition.z; } set { OffsetPosition.z = value; } }
@@ -35,10 +35,11 @@ namespace VNyan_FollowCam {
         public bool StaticZ;
         public CameraPosMode OffsetMode = CameraPosMode.Relative;
 
-        public float MaxMovementDistance;
+        public float MovementLerp;
+        
         public float MinMovementThreshold;
 
-        internal Vector3 LookAtOffsetPosition = new Vector3();
+        [JsonIgnore] public Vector3 LookAtOffsetPosition = new Vector3();
         public float LookAtOffset_X { get { return LookAtOffsetPosition.x; } set { LookAtOffsetPosition.x = value; } }
         public float LookAtOffset_Y { get { return LookAtOffsetPosition.y; } set { LookAtOffsetPosition.y = value; } }
         public float LookAtOffset_Z { get { return LookAtOffsetPosition.z; } set { LookAtOffsetPosition.z = value; } }
@@ -47,8 +48,11 @@ namespace VNyan_FollowCam {
         public bool LookAtStaticZ;
         public CameraPosMode RotationMode = CameraPosMode.Relative;
 
-        public float MaxRotation;
+        public float RotationLerp;
         public float MinRotationThreshold;
+
+        public float MaxMovementDistance; // Obsolete, remove before final release
+        public float MaxRotation; // Obsolete, remove before final release
     }
 
     internal static class _Settings {
@@ -66,6 +70,8 @@ namespace VNyan_FollowCam {
                     if (TempSettings != null) {
                         bool GUIStatus = GUI.IsActive;
                         if (GUIStatus) { GUI.SetActive(false); }
+                        if (TempSettings.MovementLerp == 0) { TempSettings.MovementLerp = TempSettings.MaxMovementDistance * 60; } // Obsolete, remove before final release
+                        if (TempSettings.RotationLerp == 0) { TempSettings.RotationLerp = TempSettings.MaxRotation * 60; } // Obsolete, remove before final release
                         CurrentWrangler.Settings = TempSettings;
                         if (UpdateLastProfile) { CurrentWrangler.SettingsFileName = FileName; }
                         GUI.SetActive(GUIStatus);

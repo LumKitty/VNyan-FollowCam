@@ -51,7 +51,7 @@ namespace VNyan_FollowCam {
             }
         }
 
-        public void DoUpdate() {
+        public void DoUpdate(float DeltaTime) {
             try {
                 if (_Enabled) {
                     GameObject AvatarObject = (GameObject)VNyanInterface.VNyanInterface.VNyanAvatar.getAvatarObject();
@@ -89,10 +89,9 @@ namespace VNyan_FollowCam {
                     if (Settings.StaticZ) { Persist_TrgPos.z = Settings.OffsetPosition.z; }
 
                     Temp_Camera.transform.position = Persist_TrgPos;
-                    
                     // Handle movement distance limit
                     if ((Persist_PrevPos - Temp_Camera.transform.position).magnitude > Persist_MinMovementThreshold) {
-                        CurrentCamera.position = Vector3.Lerp(Persist_PrevPos, Temp_Camera.transform.position, Settings.MaxMovementDistance);
+                        CurrentCamera.position = Vector3.Lerp(Persist_PrevPos, Temp_Camera.transform.position, Settings.MovementLerp*DeltaTime);
                         Persist_PrevPos = CurrentCamera.position;
                         Persist_MinMovementThreshold = Settings.MinMovementThreshold / 10;
                     } else {
@@ -122,7 +121,7 @@ namespace VNyan_FollowCam {
                     // Handle rotation distance limit
                     (Persist_PrevRot * Quaternion.Inverse(Temp_Camera.transform.rotation)).ToAngleAxis(out TempFloat, out TempVector3);
                     if (TempFloat > Persist_MinRotationThreshold) {
-                        CurrentCamera.transform.rotation = Quaternion.Lerp(Persist_PrevRot, Temp_Camera.transform.rotation, Settings.MaxRotation);
+                        CurrentCamera.transform.rotation = Quaternion.Lerp(Persist_PrevRot, Temp_Camera.transform.rotation, Settings.RotationLerp * DeltaTime);
                         Persist_PrevRot = CurrentCamera.rotation;
                         Persist_MinRotationThreshold = Settings.MinRotationThreshold / 10;
                     } else {

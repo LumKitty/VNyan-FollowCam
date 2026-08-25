@@ -20,11 +20,22 @@ namespace VNyan_FollowCam {
             }
         }*/
 
+        // vvvv Obsolete - remove these before final release vvvv
         public static Vector3 GetMainCameraPos() {
             return objCameras[0].Wrangler.CurrentCamera.position;
         }
         public static Quaternion GetMainCameraRot() {
             return objCameras[0].Wrangler.CurrentCamera.rotation;
+        }
+
+        public static void GetFollowCam(out Vector3 Pos, out Quaternion Rot, int Camera = 0) {
+            Pos = objCameras[Camera].Wrangler.CurrentCamera.position;
+            Rot = objCameras[Camera].Wrangler.CurrentCamera.rotation;
+        }
+        // ^^^^ Obsolete - remove these before final build ^^^^
+
+        public static Transform GetFollowCamTransform(int Camera = 0) {
+            return objCameras[Camera].Wrangler.CurrentCamera;
         }
 
         internal static VNyanInterface.ISpout2Camera? FindVNyanCamera(string CameraName) {
@@ -68,7 +79,7 @@ namespace VNyan_FollowCam {
         public void LateUpdate() { 
             try {
                 foreach (var objCamera in objCameras) {
-                    objCamera.DoUpdate();
+                    objCamera.DoUpdate(Time.deltaTime);
                 }
                 VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_camx", objCameras[0].Wrangler.CurrentCamera.position.x);
                 VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_camy", objCameras[0].Wrangler.CurrentCamera.position.y);

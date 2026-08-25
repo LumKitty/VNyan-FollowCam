@@ -75,12 +75,12 @@ namespace VNyan_FollowCam {
             OffsetX = CurrentWrangler.Settings.OffsetPosition.x.ToString();
             OffsetY = CurrentWrangler.Settings.OffsetPosition.y.ToString();
             OffsetZ = CurrentWrangler.Settings.OffsetPosition.z.ToString();
-            OffsetLerp = CurrentWrangler.Settings.MaxMovementDistance.ToString();
+            OffsetLerp = CurrentWrangler.Settings.MovementLerp.ToString();
             OffsetMin = CurrentWrangler.Settings.MinMovementThreshold.ToString();
             LookAtOffsetX = CurrentWrangler.Settings.LookAtOffsetPosition.x.ToString();
             LookAtOffsetY = CurrentWrangler.Settings.LookAtOffsetPosition.y.ToString();
             LookAtOffsetZ = CurrentWrangler.Settings.LookAtOffsetPosition.z.ToString();
-            LookAtLerp = CurrentWrangler.Settings.MaxRotation.ToString();
+            LookAtLerp = CurrentWrangler.Settings.RotationLerp.ToString();
             LookAtMin = CurrentWrangler.Settings.MinRotationThreshold.ToString();
         }
         
@@ -227,11 +227,11 @@ namespace VNyan_FollowCam {
                             Log("GUI: Camera Thresholds", 69);
                             GUILayout.BeginHorizontal(); {
                                 GUILayout.Label($"Movement Lerp: ");
-                                OffsetLerp = FloatTextField(OffsetLerp, out CurrentWrangler.Settings.MaxMovementDistance);
+                                OffsetLerp = FloatTextField(OffsetLerp, out CurrentWrangler.Settings.MovementLerp);
                                 GUILayout.FlexibleSpace();
                             } GUILayout.EndHorizontal();
 
-                            FloatSlider(ref OffsetLerp, ref CurrentWrangler.Settings.MaxMovementDistance, 0, 0.05f);
+                            FloatSlider(ref OffsetLerp, ref CurrentWrangler.Settings.MovementLerp, 0, 3f);
                             //Settings.MaxMovementDistance = GUILayout.HorizontalSlider(Settings.MaxMovementDistance, 0, 0.01f);
 
                             GUILayout.BeginHorizontal(); {
@@ -320,11 +320,11 @@ namespace VNyan_FollowCam {
                             GUILayout.BeginHorizontal();
                             {
                                 GUILayout.Label($"Rotation Lerp: ");
-                                LookAtLerp = FloatTextField(LookAtLerp, out CurrentWrangler.Settings.MaxRotation);
+                                LookAtLerp = FloatTextField(LookAtLerp, out CurrentWrangler.Settings.RotationLerp);
                                 GUILayout.FlexibleSpace();
                             }
                             GUILayout.EndHorizontal();
-                            FloatSlider(ref LookAtLerp, ref CurrentWrangler.Settings.MaxRotation, 0, 0.1f);
+                            FloatSlider(ref LookAtLerp, ref CurrentWrangler.Settings.RotationLerp, 0, 6f);
                             //Settings.MaxRotation = GUILayout.HorizontalSlider(Settings.MaxRotation, 0, 1);
 
                             GUILayout.BeginHorizontal();

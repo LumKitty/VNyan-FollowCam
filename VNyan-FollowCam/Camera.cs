@@ -6,15 +6,15 @@ using UnityEngine;
 namespace VNyan_FollowCam {
     internal abstract class BasicCamera {
         internal CameraWrangler Wrangler;
-        internal abstract void DoUpdate();
+        internal abstract void DoUpdate(float DeltaTime);
     }
     
     internal class MainCamera : BasicCamera {
         internal MainCamera(string SettingsFileName) {
             Wrangler = new CameraWrangler(Camera.main.transform, SettingsFileName, "Main Camera");
         }
-        internal override void DoUpdate() {
-            Wrangler.DoUpdate();
+        internal override void DoUpdate(float DeltaTime) {
+            Wrangler.DoUpdate(DeltaTime);
         }
     }
 
@@ -35,8 +35,8 @@ namespace VNyan_FollowCam {
             Wrangler = new CameraWrangler(GameObject.transform, SettingsFileName, _VNCamera.getSourceName());
         }
 
-        internal override void DoUpdate() {
-            Wrangler.DoUpdate();
+        internal override void DoUpdate(float DeltaTime) {
+            Wrangler.DoUpdate(DeltaTime);
             TempPosition.X = Wrangler.CurrentCamera.position.x;
             TempPosition.Y = Wrangler.CurrentCamera.position.y;
             TempPosition.Z = Wrangler.CurrentCamera.position.z;
