@@ -9,6 +9,7 @@ namespace VNyan_FollowCam {
         internal abstract void DoUpdate(float DeltaTime);
         internal abstract void Enable();
         internal abstract void Disable();
+        internal bool Enabled = false;
     }
     
     internal class MainCamera : BasicCamera {
@@ -21,16 +22,23 @@ namespace VNyan_FollowCam {
         internal override void DoUpdate(float DeltaTime) {
             Wrangler.DoUpdate(DeltaTime);
             if (VNyan_Handlers.VRnyanConnectionActive) {
-                VNyan_Handlers.CursedCamera.Enqueue(new CameraTransform(Wrangler.CurrentCamera.transform.position, Wrangler.CurrentCamera.transform.rotation, DateTime.UtcNow));
+                VNyan_Handlers.VRnyan_UpdateCursedCamera(Wrangler.CurrentCamera.transform.position, Wrangler.CurrentCamera.transform.rotation);
+                //VNyan_Handlers.CursedCamera.Enqueue(new CameraTransform(Wrangler.CurrentCamera.transform.position, Wrangler.CurrentCamera.transform.rotation, DateTime.UtcNow));
             }
+            VNyan_Handlers.UpdateMMF(Wrangler.CurrentCamera.transform.position, Wrangler.CurrentCamera.transform.rotation);
         }
         internal override void Enable() {
+            VNyan_Handlers.ConnectVRnyan();
             DummyCamera.transform.position = Camera.main.transform.position;
             DummyCamera.transform.rotation = Camera.main.transform.rotation;
             Wrangler.Enable();
+            VNyan_Handlers.VRnyan_EnableFollowCam();
+            Enabled = true;
         }
         internal override void Disable() {
             Wrangler.Disable();
+            VNyan_Handlers.VRnyan_DisableFollowCam();
+            Enabled = false;
         }
     }
 
@@ -56,6 +64,7 @@ namespace VNyan_FollowCam {
             DummyCamera.transform.position = new Vector3(TempPosition.X, TempPosition.Y, TempPosition.Z);
             DummyCamera.transform.rotation = new Quaternion(TempRotation.X, TempRotation.Y, TempRotation.Z, TempRotation.W);
             Wrangler.Enable();
+            
         }
         internal override void Disable() {
             Wrangler.Disable();

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Timers;
 using UnityEngine;
 using static VNyan_FollowCam._Settings;
 
@@ -10,7 +13,7 @@ namespace VNyan_FollowCam {
         internal static GameObject objFollowCam = new GameObject("FollowCam", typeof(FollowCam));
         //internal static CameraWrangler objMainCamera = new CameraWrangler(Camera.main.transform, Settings);
         public static List<BasicCamera> objCameras = new List<BasicCamera>();
-        internal static DateTime PrevTime = DateTime.UtcNow;
+        internal static DateTime PrevTime = HighResolutionDateTime.UtcNow;
         //internal static CameraWrangler objMainCamera => objCameras[0].Wrangler;
         //internal static bool IsActive => objFollowCam.activeSelf;
         /*internal static void SetActive(bool Active) {
@@ -53,9 +56,9 @@ namespace VNyan_FollowCam {
             return 0;
         }
 
-        public void OnEnable() {
-            try { 
-                PrevTime = DateTime.UtcNow;
+        public void Awake() {
+            try {
+                PrevTime = HighResolutionDateTime.UtcNow;
                 InvokeRepeating("UpdateCamera", 0, 1f/GlobalSettings.CalculationFPS);
                 VNyan_Handlers.Log("Enabled followcam");
                 //objMainCamera.Enable();
@@ -78,7 +81,7 @@ namespace VNyan_FollowCam {
         public static void NewFPS() {
             objFollowCam.GetComponent<FollowCam>()._NewFPS();
         }
-
+       
         public void OnDisable() {
             try { 
                 CancelInvoke();
@@ -92,11 +95,11 @@ namespace VNyan_FollowCam {
 
         public void UpdateCamera() {
             try {
-                DateTime Now = DateTime.UtcNow;
+                DateTime Now = HighResolutionDateTime.UtcNow;
                 float TimeDelta = (float)((Now - PrevTime).TotalSeconds);
-                VNyan_Handlers.Log($"Called at: {Now}, {TimeDelta} since previous call",69);
+                VNyan_Handlers.Log($"Called at: {Now}, {TimeDelta} since previous call",4);
                 foreach (var objCamera in objCameras) {
-                    objCamera.DoUpdate(TimeDelta);
+                    if (objCamera.Enabled) { objCamera.DoUpdate(TimeDelta); }
                 }
                 PrevTime = Now;
             } catch (Exception ex) {
@@ -106,12 +109,20 @@ namespace VNyan_FollowCam {
         
         public void LateUpdate() { 
             try {
-                /*foreach (var objCamera in objCameras) {
-                    objCamera.DoUpdate(Time.deltaTime);
-                }*/
-                if (!VNyan_Handlers.VRnyanConnectionActive && objCameras[0].Wrangler.Enabled) {
-                    Camera.main.transform.position = objCameras[0].Wrangler.CurrentCamera.position;
-                    Camera.main.transform.rotation = objCameras[0].Wrangler.CurrentCamera.rotation;
+
+                /*TODO:
+                    If VRNyan CursedCamera is not enabled, we need to override the VNyan camera here.
+                    If VRnyan is connected, but not active, we probably need to override the camera here
+                    VRnyan should probably flag to FollowCam when it's not handling things
+
+                    Functions in FollowCam "I need to do things" / "I don't need to do things"
+                    Call from VRnyan whenever enable/disable is requested (after checking Cursed Camera)
+                */
+                if (objCameras[0].Wrangler.Enabled) {
+                    if (!VNyan_Handlers.VRnyanConnectionActive) {
+                        Camera.main.transform.position = objCameras[0].Wrangler.CurrentCamera.position;
+                        Camera.main.transform.rotation = objCameras[0].Wrangler.CurrentCamera.rotation;
+                    }
                 }
             } catch (Exception ex) {
                 VNyan_Handlers.Log(ex.ToString());
