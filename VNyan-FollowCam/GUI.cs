@@ -18,7 +18,7 @@ namespace VNyan_FollowCam {
 
         //internal static CameraWrangler CurrentWrangler = new CameraWrangler(Camera.main.transform, _Settings.GlobalSettings.MainCameraSettingsFile, "Dummy - seeing this is bad!");
         internal static CameraWrangler CurrentWrangler => FollowCam.objCameras[CurrentCamera].Wrangler;
-
+        internal static BasicCamera objCurrentCamera => FollowCam.objCameras[CurrentCamera];
 
         internal static bool IsActive => objGUI.activeSelf;
         internal static void SetActive(bool Active) { objGUI.SetActive(Active); }
@@ -38,6 +38,8 @@ namespace VNyan_FollowCam {
         internal string LookAtLerp = "";
         internal string LookAtMin = "";
 
+        internal static string strCalculationFPS = _Settings.GlobalSettings.CalculationFPS.ToString();
+        internal static int intCalculationFPS = _Settings.GlobalSettings.CalculationFPS;
         internal static int CurrentCamera = 0;
         internal string NewCameraName = "";
 
@@ -82,8 +84,16 @@ namespace VNyan_FollowCam {
             LookAtOffsetZ = CurrentWrangler.Settings.LookAtOffsetPosition.z.ToString();
             LookAtLerp = CurrentWrangler.Settings.RotationLerp.ToString();
             LookAtMin = CurrentWrangler.Settings.MinRotationThreshold.ToString();
+            strCalculationFPS = _Settings.GlobalSettings.CalculationFPS.ToString();
+            intCalculationFPS = _Settings.GlobalSettings.CalculationFPS;
         }
-        
+
+        static string IntTextField(string Input, out int RealValue, GUILayoutOption LayoutOption) {
+            string Result = GUILayout.TextField(Input, 12, LayoutOption);
+            int.TryParse(Result, out RealValue);
+            return Result;
+        }
+
         static string FloatTextField(string Input, out float RealValue) {
             string Result = GUILayout.TextField(Input, 12, GUILayout.Width(90));
             float.TryParse(Result, out RealValue);
@@ -147,8 +157,25 @@ namespace VNyan_FollowCam {
                         DeactivateButtonStyle.active.textColor  = DeactivateButtonStyle.normal.textColor;
                         DeactivateButtonStyle.focused.textColor = DeactivateButtonStyle.normal.textColor;
                     }
-                    if (GUILayout.Button("Activate",   ActivateButtonStyle))   { CurrentWrangler.Enable(); }
-                    if (GUILayout.Button("Deactivate", DeactivateButtonStyle)) { CurrentWrangler.Disable(); }
+                    if (GUILayout.Button("Enable",   ActivateButtonStyle))  { objCurrentCamera.Enable(); }
+                    if (GUILayout.Button("Disable", DeactivateButtonStyle)) { objCurrentCamera.Disable(); }
+                    GUILayout.Label("CamFPS");
+                    strCalculationFPS = IntTextField(strCalculationFPS, out intCalculationFPS, GUILayout.Width(34));
+                    if (intCalculationFPS != _Settings.GlobalSettings.CalculationFPS) {
+                        if (intCalculationFPS > 3600) { // 50fps stream w/ 144fps headset - worst case scenario
+                            intCalculationFPS = 3600;
+                            strCalculationFPS = intCalculationFPS.ToString();
+                        } else if (intCalculationFPS <= 0) {
+                            intCalculationFPS = 1;
+                            strCalculationFPS = intCalculationFPS.ToString();
+                        }
+                        if (intCalculationFPS != _Settings.GlobalSettings.CalculationFPS) { 
+                            _Settings.GlobalSettings.CalculationFPS = intCalculationFPS;
+                            FollowCam.NewFPS();
+                        }
+                    }
+
+
                     Log("GUI: Load/Save", 69);
                     GUILayout.FlexibleSpace();
                     if (!String.IsNullOrEmpty(CurrentWrangler.SettingsFileName)) {

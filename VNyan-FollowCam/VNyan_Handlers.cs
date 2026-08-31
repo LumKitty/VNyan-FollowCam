@@ -2,7 +2,10 @@
 using System.IO;
 using System.Xml.Linq;
 using VNyanInterface;
+using UnityEngine;
+using System.Collections.Generic;
 using static VNyan_FollowCam._Settings;
+using System.Runtime.CompilerServices;
 
 namespace VNyan_FollowCam {
 
@@ -15,7 +18,11 @@ namespace VNyan_FollowCam {
 
         internal static System.Reflection.MethodInfo? _VRnyan_EnableFollowCam;
         internal static System.Reflection.MethodInfo? _VRnyan_DisableFollowCam;
+        internal static System.Reflection.MethodInfo? _VRnyan_UpdateMMF;
         internal static bool VRnyanConnectionAttempted = false;
+        internal static bool VRnyanConnectionActive = false;
+        internal static Queue<CameraTransform> CursedCamera = new Queue<CameraTransform>();
+        //internal static GameObject DummyMainCamera = new GameObject();
 
         internal static void Log(string Message, int LogLevel = 1) {
             if (LogLevel <= _Settings.GlobalSettings.LogLevel) {
@@ -30,7 +37,8 @@ namespace VNyan_FollowCam {
                 Log("Found VRnyan, getting methods");
                 _VRnyan_EnableFollowCam = type.GetMethod("EnableFollowCam");
                 _VRnyan_DisableFollowCam = type.GetMethod("DisableFollowCam");
-                if (_VRnyan_EnableFollowCam == null || _VRnyan_DisableFollowCam == null) {
+                _VRnyan_UpdateMMF = type.GetMethod("UpdateMMF");
+                if (_VRnyan_EnableFollowCam == null || _VRnyan_DisableFollowCam == null || _VRnyan_UpdateMMF == null) {
                     Log("Couldn't find position methods");
                 } else {
                     Log("Got methods");
@@ -52,11 +60,21 @@ namespace VNyan_FollowCam {
         }
 
         internal void VRnyan_EnableFollowCam() {
-            _VRnyan_EnableFollowCam?.Invoke(null, null);
+            CursedCamera = (Queue<CameraTransform>)_VRnyan_EnableFollowCam?.Invoke(null, null);
+            //FollowCam.objCameras[0].Wrangler.CurrentCamera = DummyMainCamera.transform;
+            VRnyanConnectionActive = true;
         }
         internal void VRnyan_DisableFollowCam() {
-            _VRnyan_EnableFollowCam?.Invoke(null, null);
+            _VRnyan_DisableFollowCam?.Invoke(null, null);
+            CursedCamera.Clear();
+            VRnyanConnectionActive = false;
+            //FollowCam.objCameras[0].Wrangler.CurrentCamera = Camera.main.transform;
         }
+
+        internal void UpdateMMF(Vector3 CamPos, Quaternion CamRot) {
+            _VRnyan_UpdateMMF?.Invoke(null, new object[]{CamPos, CamRot});
+        }
+
 
         public void triggerCalled(string name, int int1, int int2, int int3, string text1, string text2, string text3) {
             try {
@@ -82,7 +100,7 @@ namespace VNyan_FollowCam {
                             if (File.Exists(text1)) {
                                 SettingsFile.Load(text1, FollowCam.objCameras[0].Wrangler);
                                 if (int2 == 1) {
-                                    FollowCam.objCameras[0].Wrangler.Enable();
+                                    FollowCam.objCameras[0].Enable();
                                 }
                             }
                             break;

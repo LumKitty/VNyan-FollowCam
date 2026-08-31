@@ -10,6 +10,7 @@ namespace VNyan_FollowCam {
         internal static GameObject objFollowCam = new GameObject("FollowCam", typeof(FollowCam));
         //internal static CameraWrangler objMainCamera = new CameraWrangler(Camera.main.transform, Settings);
         public static List<BasicCamera> objCameras = new List<BasicCamera>();
+        internal static DateTime PrevTime = DateTime.UtcNow;
         //internal static CameraWrangler objMainCamera => objCameras[0].Wrangler;
         //internal static bool IsActive => objFollowCam.activeSelf;
         /*internal static void SetActive(bool Active) {
@@ -19,20 +20,6 @@ namespace VNyan_FollowCam {
                 objFollowCam.SetActive(false);
             }
         }*/
-
-        // vvvv Obsolete - remove these before final release vvvv
-        public static Vector3 GetMainCameraPos() {
-            return objCameras[0].Wrangler.CurrentCamera.position;
-        }
-        public static Quaternion GetMainCameraRot() {
-            return objCameras[0].Wrangler.CurrentCamera.rotation;
-        }
-
-        public static void GetFollowCam(out Vector3 Pos, out Quaternion Rot, int Camera = 0) {
-            Pos = objCameras[Camera].Wrangler.CurrentCamera.position;
-            Rot = objCameras[Camera].Wrangler.CurrentCamera.rotation;
-        }
-        // ^^^^ Obsolete - remove these before final build ^^^^
 
         public static Transform GetFollowCamTransform(int Camera = 0) {
             return objCameras[Camera].Wrangler.CurrentCamera;
@@ -67,28 +54,65 @@ namespace VNyan_FollowCam {
         }
 
         public void OnEnable() {
-            //objMainCamera.Enable();
-            //VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_enabled", 1f);
+            try { 
+                PrevTime = DateTime.UtcNow;
+                InvokeRepeating("UpdateCamera", 0, 1f/GlobalSettings.CalculationFPS);
+                VNyan_Handlers.Log("Enabled followcam");
+                //objMainCamera.Enable();
+                //VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_enabled", 1f);
+            } catch (Exception ex) {
+                VNyan_Handlers.Log(ex.ToString());
+            }
+        }
+
+        private void _NewFPS() {
+            try {
+                CancelInvoke();
+                InvokeRepeating("UpdateCamera", 0, 1f / GlobalSettings.CalculationFPS);
+                VNyan_Handlers.Log($"FPS updated to {GlobalSettings.CalculationFPS}");
+            } catch (Exception ex) {
+                VNyan_Handlers.Log(ex.ToString());
+            }
+        }
+
+        public static void NewFPS() {
+            objFollowCam.GetComponent<FollowCam>()._NewFPS();
         }
 
         public void OnDisable() {
-            //objMainCamera.Disable();
-            //VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_enabled", 0f);
+            try { 
+                CancelInvoke();
+                VNyan_Handlers.Log("Disabled followcam");
+                //objMainCamera.Disable();
+                //VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_enabled", 0f);
+            } catch (Exception ex) {
+                VNyan_Handlers.Log(ex.ToString());
+            }
         }
 
+        public void UpdateCamera() {
+            try {
+                DateTime Now = DateTime.UtcNow;
+                float TimeDelta = (float)((Now - PrevTime).TotalSeconds);
+                VNyan_Handlers.Log($"Called at: {Now}, {TimeDelta} since previous call",69);
+                foreach (var objCamera in objCameras) {
+                    objCamera.DoUpdate(TimeDelta);
+                }
+                PrevTime = Now;
+            } catch (Exception ex) {
+                VNyan_Handlers.Log(ex.ToString());
+            }
+        }
+        
         public void LateUpdate() { 
             try {
-                foreach (var objCamera in objCameras) {
+                /*foreach (var objCamera in objCameras) {
                     objCamera.DoUpdate(Time.deltaTime);
+                }*/
+                if (!VNyan_Handlers.VRnyanConnectionActive && objCameras[0].Wrangler.Enabled) {
+                    Camera.main.transform.position = objCameras[0].Wrangler.CurrentCamera.position;
+                    Camera.main.transform.rotation = objCameras[0].Wrangler.CurrentCamera.rotation;
                 }
-                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_camx", objCameras[0].Wrangler.CurrentCamera.position.x);
-                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_camy", objCameras[0].Wrangler.CurrentCamera.position.y);
-                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_camz", objCameras[0].Wrangler.CurrentCamera.position.z);
-
-                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_rotw", objCameras[0].Wrangler.CurrentCamera.rotation.w);
-                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_rotx", objCameras[0].Wrangler.CurrentCamera.rotation.x);
-                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_roty", objCameras[0].Wrangler.CurrentCamera.rotation.y);
-                VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_rotz", objCameras[0].Wrangler.CurrentCamera.rotation.z);
             } catch (Exception ex) {
                 VNyan_Handlers.Log(ex.ToString());
             }

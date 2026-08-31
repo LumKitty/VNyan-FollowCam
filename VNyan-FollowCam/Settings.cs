@@ -7,6 +7,25 @@ using UnityEngine;
 
 namespace VNyan_FollowCam {
 
+    public class CameraTransform {
+        public Vector3 Position;
+        public Quaternion Rotation;
+        public DateTime TargetTime;
+
+        public CameraTransform(Vector3 _Position, Quaternion _Rotation, DateTime _TargetTime) {
+            Position = _Position;
+            Rotation = _Rotation;
+            TargetTime = _TargetTime;
+        }
+        public bool Ready {
+            get { return (DateTime.UtcNow >= TargetTime); }
+        }
+        public void SetCam() {
+            Camera.main.transform.position = Position;
+            Camera.main.transform.rotation = Rotation;
+        }
+    }
+
     public enum CameraPosMode {
         Off = 0,
         Absolute = 1,
@@ -16,7 +35,8 @@ namespace VNyan_FollowCam {
     internal class __GlobalSettings {
         internal static string SettingsFileName = VNyanInterface.VNyanInterface.VNyanSettings.getProfilePath() + "\\FollowCam.json";
         public string MainCameraSettingsFile = VNyanInterface.VNyanInterface.VNyanSettings.getProfilePath() + "\\FollowCam-MainCam.json";
-        internal int LogLevel = 4;
+        public int CalculationFPS = 60;
+        public int LogLevel = 4;
 
     }
     
