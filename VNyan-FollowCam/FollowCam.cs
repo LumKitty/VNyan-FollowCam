@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using UnityEngine;
 using static VNyan_FollowCam._Settings;
+using static VNyan_FollowCam.Functions;
 
 namespace VNyan_FollowCam {
     
@@ -13,7 +14,7 @@ namespace VNyan_FollowCam {
         internal static GameObject objFollowCam = new GameObject("FollowCam", typeof(FollowCam));
         //internal static CameraWrangler objMainCamera = new CameraWrangler(Camera.main.transform, Settings);
         public static List<BasicCamera> objCameras = new List<BasicCamera>();
-        internal static DateTime PrevTime = HighResolutionDateTime.UtcNow;
+        internal static double PrevTime = Time.realtimeSinceStartupAsDouble;
         //internal static CameraWrangler objMainCamera => objCameras[0].Wrangler;
         //internal static bool IsActive => objFollowCam.activeSelf;
         /*internal static void SetActive(bool Active) {
@@ -40,7 +41,7 @@ namespace VNyan_FollowCam {
         public static int AttachSpoutCamera(string CameraName, string SettingsFileName) {
             foreach (BasicCamera ExistingCamera in objCameras) {
                 if (ExistingCamera.Wrangler.Name == CameraName) {
-                    VNyan_Handlers.Log($"Attempted to attach to already handled Spout2 camera: {CameraName}");
+                    Log($"Attempted to attach to already handled Spout2 camera: {CameraName}");
                     return -1;
                 }
             }
@@ -49,32 +50,36 @@ namespace VNyan_FollowCam {
 
             if (Camera != null) {
                 objCameras.Add(new SpoutCamera(Camera, SettingsFileName));
-                VNyan_Handlers.Log($"Attached Spout2 camera {CameraName}");
+                Log($"Attached Spout2 camera {CameraName}");
                 return objCameras.Count - 1;
             }
-            VNyan_Handlers.Log($"Couldn't attach Spout2 camera {CameraName} as it doesn't appear to exist");
+            Log($"Couldn't attach Spout2 camera {CameraName} as it doesn't appear to exist");
             return 0;
         }
 
         public void Awake() {
             try {
-                PrevTime = HighResolutionDateTime.UtcNow;
+                PrevTime = Time.realtimeSinceStartupAsDouble;
                 InvokeRepeating("UpdateCamera", 0, 1f/GlobalSettings.CalculationFPS);
-                VNyan_Handlers.Log("Enabled followcam");
+                Log("Enabled followcam");
                 //objMainCamera.Enable();
                 //VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_enabled", 1f);
             } catch (Exception ex) {
-                VNyan_Handlers.Log(ex.ToString());
+                Log(ex.ToString());
             }
         }
 
         private void _NewFPS() {
             try {
                 CancelInvoke();
-                InvokeRepeating("UpdateCamera", 0, 1f / GlobalSettings.CalculationFPS);
-                VNyan_Handlers.Log($"FPS updated to {GlobalSettings.CalculationFPS}");
+                if (GlobalSettings.CalculationFPS > 0) {
+                    InvokeRepeating("UpdateCamera", 0, 1f / GlobalSettings.CalculationFPS);
+                    Log($"FPS updated to {GlobalSettings.CalculationFPS}");
+                } else {
+                    Log("FPS will follow VNyan FPS");
+                }
             } catch (Exception ex) {
-                VNyan_Handlers.Log(ex.ToString());
+                Log(ex.ToString());
             }
         }
 
@@ -85,25 +90,25 @@ namespace VNyan_FollowCam {
         public void OnDisable() {
             try { 
                 CancelInvoke();
-                VNyan_Handlers.Log("Disabled followcam");
+                Log("Disabled followcam");
                 //objMainCamera.Disable();
                 //VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_enabled", 0f);
             } catch (Exception ex) {
-                VNyan_Handlers.Log(ex.ToString());
+                Log(ex.ToString());
             }
         }
 
         public void UpdateCamera() {
             try {
-                DateTime Now = HighResolutionDateTime.UtcNow;
-                float TimeDelta = (float)((Now - PrevTime).TotalSeconds);
-                VNyan_Handlers.Log($"Called at: {Now}, {TimeDelta} since previous call",4);
+                double Now = Time.realtimeSinceStartupAsDouble;
+                double TimeDelta = Now - PrevTime;
+                Log($"Called at: {Now}, {TimeDelta} since previous call",4);
                 foreach (var objCamera in objCameras) {
-                    if (objCamera.Enabled) { objCamera.DoUpdate(TimeDelta); }
+                    if (objCamera.Enabled) { objCamera.DoUpdate((float)TimeDelta); }
                 }
                 PrevTime = Now;
             } catch (Exception ex) {
-                VNyan_Handlers.Log(ex.ToString());
+                Log(ex.ToString());
             }
         }
         
@@ -118,14 +123,14 @@ namespace VNyan_FollowCam {
                     Functions in FollowCam "I need to do things" / "I don't need to do things"
                     Call from VRnyan whenever enable/disable is requested (after checking Cursed Camera)
                 */
-                if (objCameras[0].Wrangler.Enabled) {
-                    if (!VNyan_Handlers.VRnyanConnectionActive) {
-                        Camera.main.transform.position = objCameras[0].Wrangler.CurrentCamera.position;
-                        Camera.main.transform.rotation = objCameras[0].Wrangler.CurrentCamera.rotation;
-                    }
+                if (GlobalSettings.CalculationFPS <= 0) { UpdateCamera(); }
+                if (objCameras[0].Wrangler.Enabled &&!VRnyan_Handlers.VRNyanControllingCamera) {
+                    Camera.main.transform.position = objCameras[0].Wrangler.CurrentCamera.position;
+                    Camera.main.transform.rotation = objCameras[0].Wrangler.CurrentCamera.rotation;
                 }
+                //Log($"VRNyanControllingCamera: {VRnyan_Handlers.VRNyanControllingCamera}, MainFollowCamActive: {VRnyan_Handlers.MainFollowCamActive}");
             } catch (Exception ex) {
-                VNyan_Handlers.Log(ex.ToString());
+                Log(ex.ToString());
             }
         }
     }

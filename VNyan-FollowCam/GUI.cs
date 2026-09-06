@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using static VNyan_FollowCam.Functions;
 using static VNyan_FollowCam.VNyan_Handlers;
 
 namespace VNyan_FollowCam {
@@ -424,7 +425,7 @@ namespace VNyan_FollowCam {
 
                     GUILayout.EndArea();
             } catch (Exception ex) {
-                VNyan_Handlers.Log(ex.ToString());
+                Log(ex.ToString());
             }
         }
     }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using static VNyan_FollowCam.Functions;
 
 namespace VNyan_FollowCam {
     public class CameraWrangler {
@@ -130,7 +131,7 @@ namespace VNyan_FollowCam {
                     }
                 }
             } catch (Exception ex) {
-                VNyan_Handlers.Log(ex.ToString());
+                Log(ex.ToString());
             }
         }
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using static VNyan_FollowCam.Functions;
 
 namespace VNyan_FollowCam {
 
@@ -66,7 +67,7 @@ namespace VNyan_FollowCam {
         internal static bool Load(string FileName, CameraWrangler CurrentWrangler, bool UpdateLastProfile = true) {
             try {
                 if (File.Exists(FileName)) {
-                    VNyan_Handlers.Log($"Loading {FileName}");
+                    Log($"Loading {FileName}");
                     __Settings? TempSettings = JsonConvert.DeserializeObject<__Settings>(File.ReadAllText(FileName));
                     if (TempSettings != null) {
                         bool GUIStatus = GUI.IsActive;
@@ -78,52 +79,52 @@ namespace VNyan_FollowCam {
                         GUI.SetActive(GUIStatus);
                         return true;
                     } else {
-                        VNyan_Handlers.Log($"Invalid settings file: {FileName}");
+                        Log($"Invalid settings file: {FileName}");
                     }
                 } else {
-                    VNyan_Handlers.Log($"Could not find {FileName}");
+                    Log($"Could not find {FileName}");
                 }
                 return false;
             } catch (Exception ex) {
-                VNyan_Handlers.Log(ex.ToString());
+                Log(ex.ToString());
                 return false;
             }
         }
         internal static void Save(string FileName, CameraWrangler CurrentWrangler, bool UpdateLastProfile = true) {
             try {
-                VNyan_Handlers.Log($"Saving to {FileName}");
+                Log($"Saving to {FileName}");
                 File.WriteAllText(FileName, JsonConvert.SerializeObject(CurrentWrangler.Settings, Formatting.Indented));
                 if (UpdateLastProfile) { CurrentWrangler.SettingsFileName = FileName; }
             } catch (Exception ex) {
-                VNyan_Handlers.Log(ex.ToString());
+                Log(ex.ToString());
             }
         }
 
         internal static void SaveGlobal() {
             try {
-                VNyan_Handlers.Log($"Saving to {__GlobalSettings.SettingsFileName}");
+                Log($"Saving to {__GlobalSettings.SettingsFileName}");
                 File.WriteAllText(__GlobalSettings.SettingsFileName, JsonConvert.SerializeObject(_Settings.GlobalSettings, Formatting.Indented));
             } catch (Exception ex) {
-                VNyan_Handlers.Log(ex.ToString());
+                Log(ex.ToString());
             }
         }
 
         internal static bool LoadGlobal() {
             try {
                 if (File.Exists(__GlobalSettings.SettingsFileName)) {
-                    VNyan_Handlers.Log($"Loading {__GlobalSettings.SettingsFileName}");
+                    Log($"Loading {__GlobalSettings.SettingsFileName}");
                     __GlobalSettings? TempSettings = JsonConvert.DeserializeObject<__GlobalSettings>(File.ReadAllText(__GlobalSettings.SettingsFileName));
                     if (TempSettings != null) {
                         _Settings.GlobalSettings = TempSettings;
                     } else {
-                        VNyan_Handlers.Log($"Invalid settings file: {__GlobalSettings.SettingsFileName}");
+                        Log($"Invalid settings file: {__GlobalSettings.SettingsFileName}");
                     }
                 } else {
-                    VNyan_Handlers.Log($"Could not find {__GlobalSettings.SettingsFileName}");
+                    Log($"Could not find {__GlobalSettings.SettingsFileName}");
                 }
                 return false;
             } catch (Exception ex) {
-                VNyan_Handlers.Log(ex.ToString());
+                Log(ex.ToString());
                 return false;
             }
         }
