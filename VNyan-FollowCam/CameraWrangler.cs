@@ -90,15 +90,18 @@ namespace VNyan_FollowCam {
                     if (Settings.StaticZ) { Persist_TrgPos.z = Settings.OffsetPosition.z; }
 
                     Temp_Camera.transform.position = Persist_TrgPos;
-                    // Handle movement distance limit
+                    // Handle movement lerp
                     if ((Persist_PrevPos - Temp_Camera.transform.position).magnitude > Persist_MinMovementThreshold) {
                         CurrentCamera.position = Vector3.Lerp(Persist_PrevPos, Temp_Camera.transform.position, Settings.MovementLerp*DeltaTime);
                         Persist_PrevPos = CurrentCamera.position;
                         Persist_MinMovementThreshold = Settings.MinMovementThreshold / 10;
+
                     } else {
                         CurrentCamera.position = Persist_PrevPos;
                         Persist_MinMovementThreshold = Settings.MinMovementThreshold;
                     }
+
+
 
                     // Get target lookat angle
                     switch (Settings.RotationMode) {
@@ -119,10 +122,10 @@ namespace VNyan_FollowCam {
                             break;
                     }
                     Persist_LookAtTrgPos = Temp_CameraLookAt.transform.position;
-                    // Handle rotation distance limit
+                    // Handle rotation slerp
                     (Persist_PrevRot * Quaternion.Inverse(Temp_Camera.transform.rotation)).ToAngleAxis(out TempFloat, out TempVector3);
                     if (TempFloat > Persist_MinRotationThreshold) {
-                        CurrentCamera.transform.rotation = Quaternion.Lerp(Persist_PrevRot, Temp_Camera.transform.rotation, Settings.RotationLerp * DeltaTime);
+                        CurrentCamera.transform.rotation = Quaternion.Slerp(Persist_PrevRot, Temp_Camera.transform.rotation, Settings.RotationLerp * DeltaTime);
                         Persist_PrevRot = CurrentCamera.rotation;
                         Persist_MinRotationThreshold = Settings.MinRotationThreshold / 10;
                     } else {

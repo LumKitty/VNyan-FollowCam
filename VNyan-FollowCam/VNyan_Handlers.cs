@@ -14,7 +14,7 @@ namespace VNyan_FollowCam {
 
     public class VNyan_Handlers : IVNyanPluginManifest, IButtonClickedHandler, ITriggerHandler {
         public string PluginName { get; } = "VNyan FollowCam";
-        public string Version { get; } = "0.5-beta";
+        public string Version { get; } = "0.6-beta";
         public string Title => PluginName + " " + Version;
         public string Author { get; } = "LumKitty";
         public string Website { get; } = "https://lum.uk/";
@@ -46,8 +46,8 @@ namespace VNyan_FollowCam {
                         return;
                     }
                     switch (name) {
-                        case "_enable": FollowCam.objCameras[0].Wrangler.Enable(); break;
-                        case "_disable": FollowCam.objCameras[0].Wrangler.Disable(); break;
+                        case "_enable": FollowCam.objCameras[0].Enable(); break;
+                        case "_disable": FollowCam.objCameras[0].Disable(); break;
                         case "_offsetoff": FollowCam.objCameras[0].Wrangler.Settings.OffsetMode = CameraPosMode.Off; break;
                         case "_offsetabs": FollowCam.objCameras[0].Wrangler.Settings.OffsetMode = CameraPosMode.Absolute; break;
                         case "_offsetrel": FollowCam.objCameras[0].Wrangler.Settings.OffsetMode = CameraPosMode.Relative; break;

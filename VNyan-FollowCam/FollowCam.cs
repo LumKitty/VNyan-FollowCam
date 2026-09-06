@@ -15,6 +15,7 @@ namespace VNyan_FollowCam {
         //internal static CameraWrangler objMainCamera = new CameraWrangler(Camera.main.transform, Settings);
         public static List<BasicCamera> objCameras = new List<BasicCamera>();
         internal static double PrevTime = Time.realtimeSinceStartupAsDouble;
+        internal static HighResTimer HighResTimer = new HighResTimer(GlobalSettings.CalculationFPS);
         //internal static CameraWrangler objMainCamera => objCameras[0].Wrangler;
         //internal static bool IsActive => objFollowCam.activeSelf;
         /*internal static void SetActive(bool Active) {
@@ -60,7 +61,11 @@ namespace VNyan_FollowCam {
         public void Awake() {
             try {
                 PrevTime = Time.realtimeSinceStartupAsDouble;
-                InvokeRepeating("UpdateCamera", 0, 1f/GlobalSettings.CalculationFPS);
+                if (GlobalSettings.CalculationFPS > 0) {
+                    HighResTimer.SetFrequency(GlobalSettings.CalculationFPS);
+                    if (IsAnyFollowCamActive()) { HighResTimer.Start(); }
+                }
+                //InvokeRepeating("UpdateCamera", 0, 1f/GlobalSettings.CalculationFPS);
                 Log("Enabled followcam");
                 //objMainCamera.Enable();
                 //VNyanInterface.VNyanInterface.VNyanParameter.setVNyanParameterFloat("_lum_followcam_enabled", 1f);
@@ -73,9 +78,14 @@ namespace VNyan_FollowCam {
             try {
                 CancelInvoke();
                 if (GlobalSettings.CalculationFPS > 0) {
-                    InvokeRepeating("UpdateCamera", 0, 1f / GlobalSettings.CalculationFPS);
+                    HighResTimer.Stop();
+                    HighResTimer.SetFrequency(GlobalSettings.CalculationFPS);
+                    
+                    HighResTimer.Start();
+                    //InvokeRepeating("UpdateCamera", 0, 1f / GlobalSettings.CalculationFPS);
                     Log($"FPS updated to {GlobalSettings.CalculationFPS}");
                 } else {
+                    HighResTimer.Stop();
                     Log("FPS will follow VNyan FPS");
                 }
             } catch (Exception ex) {
@@ -86,7 +96,17 @@ namespace VNyan_FollowCam {
         public static void NewFPS() {
             objFollowCam.GetComponent<FollowCam>()._NewFPS();
         }
-       
+
+        public static bool IsAnyFollowCamActive() {
+            foreach (var objCamera in objCameras) {
+                if (objCamera.Enabled) {
+                    return true;
+                }
+                return false;
+            }
+            return false;
+        }
+
         public void OnDisable() {
             try { 
                 CancelInvoke();
@@ -98,11 +118,11 @@ namespace VNyan_FollowCam {
             }
         }
 
-        public void UpdateCamera() {
+        public static void UpdateCamera() {
             try {
                 double Now = Time.realtimeSinceStartupAsDouble;
                 double TimeDelta = Now - PrevTime;
-                Log($"Called at: {Now}, {TimeDelta} since previous call",4);
+                Log($"Called at: {Now}, {TimeDelta} since previous call",69);
                 foreach (var objCamera in objCameras) {
                     if (objCamera.Enabled) { objCamera.DoUpdate((float)TimeDelta); }
                 }
@@ -132,6 +152,10 @@ namespace VNyan_FollowCam {
             } catch (Exception ex) {
                 Log(ex.ToString());
             }
+        }
+
+        public void OnApplicationQuit() {
+            HighResTimer.Stop();
         }
     }
 }

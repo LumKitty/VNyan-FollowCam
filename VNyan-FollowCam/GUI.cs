@@ -61,7 +61,7 @@ namespace VNyan_FollowCam {
         
         void OnDisable() {
             if (FollowCam.objCameras.Count > 0) {
-                SettingsFile.Save(CurrentWrangler.SettingsFileName, CurrentWrangler);
+                //SettingsFile.Save(CurrentWrangler.SettingsFileName, CurrentWrangler);
                 _Settings.GlobalSettings.MainCameraSettingsFile = FollowCam.objCameras[0].Wrangler.SettingsFileName;
                 SettingsFile.SaveGlobal();
             }

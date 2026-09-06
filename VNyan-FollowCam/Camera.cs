@@ -24,17 +24,19 @@ namespace VNyan_FollowCam {
             VRnyan_Handlers.UpdateVRnyanCameraPos(Wrangler.CurrentCamera.transform.position, Wrangler.CurrentCamera.transform.rotation);
         }
         internal override void Enable() {
-            VRnyan_Handlers.ConnectVRnyan();
+            //VRnyan_Handlers.ConnectVRnyan();
             DummyCamera.transform.position = Camera.main.transform.position;
             DummyCamera.transform.rotation = Camera.main.transform.rotation;
             Wrangler.Enable();
             VRnyan_Handlers.MainFollowCamActive = true;
             Enabled = true;
+            if (!FollowCam.HighResTimer.IsRunning) { FollowCam.HighResTimer.Start(); }
         }
         internal override void Disable() {
             Wrangler.Disable();
             VRnyan_Handlers.MainFollowCamActive = false;
             Enabled = false;
+            if (!FollowCam.IsAnyFollowCamActive()) { FollowCam.HighResTimer.Stop(); }
         }
     }
 
@@ -60,10 +62,12 @@ namespace VNyan_FollowCam {
             DummyCamera.transform.position = new Vector3(TempPosition.X, TempPosition.Y, TempPosition.Z);
             DummyCamera.transform.rotation = new Quaternion(TempRotation.X, TempRotation.Y, TempRotation.Z, TempRotation.W);
             Wrangler.Enable();
-            
+            if (!FollowCam.HighResTimer.IsRunning) { FollowCam.HighResTimer.Start(); }
+
         }
         internal override void Disable() {
             Wrangler.Disable();
+            if (!FollowCam.IsAnyFollowCamActive()) { FollowCam.HighResTimer.Stop(); }
         }
 
         internal override void DoUpdate(float DeltaTime) {
