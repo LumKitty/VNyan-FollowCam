@@ -11,6 +11,7 @@ using static VNyan_FollowCam.Functions;
 namespace VNyan_FollowCam {
     
     internal class FollowCam : MonoBehaviour {
+        internal const int MaxFPS = 1000; // worst case scenario is 60fps stream + 144fps headset = 720. 1000 is plenty
         internal static GameObject objFollowCam = new GameObject("FollowCam", typeof(FollowCam));
         //internal static CameraWrangler objMainCamera = new CameraWrangler(Camera.main.transform, Settings);
         public static List<BasicCamera> objCameras = new List<BasicCamera>();
@@ -80,8 +81,8 @@ namespace VNyan_FollowCam {
                 if (GlobalSettings.CalculationFPS > 0) {
                     HighResTimer.Stop();
                     HighResTimer.SetFrequency(GlobalSettings.CalculationFPS);
-                    
-                    HighResTimer.Start();
+
+                    if (IsAnyFollowCamActive()) { HighResTimer.Start(); }
                     //InvokeRepeating("UpdateCamera", 0, 1f / GlobalSettings.CalculationFPS);
                     Log($"FPS updated to {GlobalSettings.CalculationFPS}");
                 } else {

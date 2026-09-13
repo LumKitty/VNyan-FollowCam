@@ -119,7 +119,7 @@ namespace VNyan_FollowCam {
                     Transform BaseBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)CurrentWrangler.Settings.BaseBone);
                     //Transform LookAtBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)Settings.LookAtBone);
 
-                    GUILayout.BeginHorizontal();
+                    /* GUILayout.BeginHorizontal();
                     GUILayout.Label($"{CurrentCamera}/{FollowCam.objCameras.Count-1}: {CurrentWrangler.Name}");
                     if (GUILayout.Button("<") && (CurrentCamera >0)) { CurrentCamera--; }
                     if (GUILayout.Button(">") && (CurrentCamera < FollowCam.objCameras.Count-1)) { CurrentCamera++; }
@@ -130,7 +130,7 @@ namespace VNyan_FollowCam {
                         if (result >0) { CurrentCamera = result; }
                     }
                     if (GUILayout.Button(" X ")) { SetActive(false); }
-                    GUILayout.EndHorizontal();
+                    GUILayout.EndHorizontal(); */
 
                     Log("GUI: TitleBar", 69);
                     GUILayout.BeginHorizontal();
@@ -141,6 +141,7 @@ namespace VNyan_FollowCam {
                     }
                     GUILayout.FlexibleSpace();
                     DWidth = (int)GUILayout.HorizontalSlider((float)DWidth, MinWidth, MaxWidth, GUILayout.MaxWidth(200));
+                    if (GUILayout.Button(" X ")) { SetActive(false); }
                     GUILayout.EndHorizontal();
 
                     Log("GUI: Activate/Deactivate", 69);
@@ -163,8 +164,8 @@ namespace VNyan_FollowCam {
                     GUILayout.Label("CamFPS");
                     strCalculationFPS = IntTextField(strCalculationFPS, out intCalculationFPS, GUILayout.Width(34));
                     if (intCalculationFPS != _Settings.GlobalSettings.CalculationFPS) {
-                        if (intCalculationFPS > 3600) { // 50fps stream w/ 144fps headset - worst case scenario
-                            intCalculationFPS = 3600;
+                        if (intCalculationFPS > FollowCam.MaxFPS) {
+                            intCalculationFPS = FollowCam.MaxFPS;
                             strCalculationFPS = intCalculationFPS.ToString();
                         } else if (intCalculationFPS <= 0) {
                             intCalculationFPS = 1;

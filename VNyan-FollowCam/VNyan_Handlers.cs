@@ -14,7 +14,7 @@ namespace VNyan_FollowCam {
 
     public class VNyan_Handlers : IVNyanPluginManifest, IButtonClickedHandler, ITriggerHandler {
         public string PluginName { get; } = "VNyan FollowCam";
-        public string Version { get; } = "0.6-beta";
+        public string Version { get; } = "0.7-beta";
         public string Title => PluginName + " " + Version;
         public string Author { get; } = "LumKitty";
         public string Website { get; } = "https://lum.uk/";
@@ -32,6 +32,7 @@ namespace VNyan_FollowCam {
             VRnyan_Handlers.ConnectVRnyan();
             //FollowCam.RunTimerAsync(new System.Threading.CancellationToken());
             FollowCam.objFollowCam.SetActive(true);
+            FollowCam.NewFPS();
         }
 
         public void triggerCalled(string name, int int1, int int2, int int3, string text1, string text2, string text3) {

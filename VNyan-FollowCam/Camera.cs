@@ -21,7 +21,9 @@ namespace VNyan_FollowCam {
         }
         internal override void DoUpdate(float DeltaTime) {
             Wrangler.DoUpdate(DeltaTime);
-            VRnyan_Handlers.UpdateVRnyanCameraPos(Wrangler.CurrentCamera.transform.position, Wrangler.CurrentCamera.transform.rotation);
+            if (VRnyan_Handlers.VRNyanControllingCamera) {
+                VRnyan_Handlers.UpdateVRnyanCameraPos(Wrangler.CurrentCamera.transform.position, Wrangler.CurrentCamera.transform.rotation);
+            }
         }
         internal override void Enable() {
             //VRnyan_Handlers.ConnectVRnyan();
