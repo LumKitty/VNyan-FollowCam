@@ -139,7 +139,7 @@ namespace VNyan_FollowCam {
                 double TimeDelta = Now - PrevTime;
                 Log($"Called at: {Now}, {TimeDelta} since previous call",69);
                 foreach (var objCamera in objCameras) {
-                    if (objCamera.Enabled) { objCamera.DoUpdate((float)TimeDelta); }
+                    if (objCamera.Enabled) { objCamera.DoUpdate((float)TimeDelta, Now); }
                 }
                 PrevTime = Now;
             } catch (Exception ex) {

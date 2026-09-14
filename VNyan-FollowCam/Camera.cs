@@ -9,7 +9,7 @@ namespace VNyan_FollowCam {
     //internal SpoutCamera(string SettingsFileName, string SourceName, int Width = -1, int Height = -1, float FocalLength = -1, bool ShowAvatar = true, bool ShowCObject = true, bool ShowWorld = true, bool ShowSkyBox = false) {
     internal abstract class BasicCamera {
         internal CameraWrangler Wrangler;
-        internal abstract void DoUpdate(float DeltaTime);
+        internal abstract void DoUpdate(float DeltaTime, double Now);
         internal abstract void Enable();
         internal abstract void Disable();
         internal bool Enabled = false;
@@ -40,9 +40,9 @@ namespace VNyan_FollowCam {
             Wrangler = new CameraWrangler(DummyCamera.transform, SettingsFileName, "Main Camera");
         }
 
-        internal override void DoUpdate(float DeltaTime) {
-            double Now = UnityEngine.Time.realtimeSinceStartupAsDouble;
+        internal override void DoUpdate(float DeltaTime, double Now) {
             Wrangler.DoUpdate(DeltaTime);
+            VRnyan_Handlers.UpdateMMF(Wrangler.CurrentCamera.transform.position, Wrangler.CurrentCamera.transform.rotation);
             VRnyan_Handlers.UpdateVRnyanCameraPos(Wrangler.CurrentCamera.transform.position, Wrangler.CurrentCamera.transform.rotation, Sequence++, Now);
         }
 
@@ -111,7 +111,7 @@ namespace VNyan_FollowCam {
             VNCamera = null;
         }
 
-        internal override void DoUpdate(float DeltaTime) {
+        internal override void DoUpdate(float DeltaTime, double Now) {
             Wrangler.DoUpdate(DeltaTime);
 
             TempPosition = FromVector3(Wrangler.CurrentCamera.position);
