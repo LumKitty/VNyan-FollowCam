@@ -119,18 +119,18 @@ namespace VNyan_FollowCam {
                     Transform BaseBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)CurrentWrangler.Settings.BaseBone);
                     //Transform LookAtBoneTransform = AvatarAnimator.GetBoneTransform((HumanBodyBones)Settings.LookAtBone);
 
-                    /* GUILayout.BeginHorizontal();
+                    GUILayout.BeginHorizontal();
                     GUILayout.Label($"{CurrentCamera}/{FollowCam.objCameras.Count-1}: {CurrentWrangler.Name}");
-                    if (GUILayout.Button("<") && (CurrentCamera >0)) { CurrentCamera--; }
-                    if (GUILayout.Button(">") && (CurrentCamera < FollowCam.objCameras.Count-1)) { CurrentCamera++; }
+                    if (GUILayout.Button("<") && (CurrentCamera >0)) { CurrentCamera--; ReloadTempStrings(); }
+                    if (GUILayout.Button(">") && (CurrentCamera < FollowCam.objCameras.Count-1)) { CurrentCamera++; ReloadTempStrings(); }
                     GUILayout.FlexibleSpace();
                     NewCameraName = GUILayout.TextField(NewCameraName, GUILayout.MinWidth(50));
                     if (GUILayout.Button("+")) { 
-                        int result = FollowCam.AttachSpoutCamera(NewCameraName, ""); 
+                        int result = FollowCam.CreateSpoutCamera(NewCameraName, CurrentWrangler.SettingsFileName); 
                         if (result >0) { CurrentCamera = result; }
                     }
                     if (GUILayout.Button(" X ")) { SetActive(false); }
-                    GUILayout.EndHorizontal(); */
+                    GUILayout.EndHorizontal();
 
                     Log("GUI: TitleBar", 69);
                     GUILayout.BeginHorizontal();

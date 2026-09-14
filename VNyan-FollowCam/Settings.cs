@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
+using VNyanInterface;
 using static VNyan_FollowCam.Functions;
 
 namespace VNyan_FollowCam {
@@ -14,12 +16,37 @@ namespace VNyan_FollowCam {
         Relative = 2
     }
 
+    internal class SpoutCameraSettings {
+        public string Name;
+        public string SettingsFileName;
+        public int Width;
+        public int Height;
+        public float FocalLength;
+        public bool ShowAvatar;
+        public bool ShowCObjects;
+        public bool ShowWorld;
+        public bool ShowSkyBox;
+            
+        [JsonConstructor]
+        internal SpoutCameraSettings(string Name, string SettingsFileName, int Width = -1, int Height = -1, float FocalLength = -1, bool ShowAvatar = true, bool ShowCObjects = true, bool ShowWorld = true, bool ShowSkyBox = false) {
+            this.Name = Name;
+            this.SettingsFileName = SettingsFileName;
+            if (Width == -1)       { this.Width = Screen.width;                  } else { this.Width = Width; }
+            if (Height == -1)      { this.Height = Screen.height;                } else { this.Height = Height; }
+            if (FocalLength == -1) { this.FocalLength = Camera.main.fieldOfView; } else { this.FocalLength = FocalLength; }
+            this.ShowAvatar = ShowAvatar;
+            this.ShowCObjects = ShowCObjects;
+            this.ShowWorld = ShowWorld;
+            this.ShowSkyBox = ShowSkyBox;
+        }
+    }
+
     internal class __GlobalSettings {
         internal static string SettingsFileName = VNyanInterface.VNyanInterface.VNyanSettings.getProfilePath() + "\\FollowCam.json";
         public string MainCameraSettingsFile = VNyanInterface.VNyanInterface.VNyanSettings.getProfilePath() + "\\FollowCam-MainCam.json";
         public int CalculationFPS = 60;
         public int LogLevel = 4;
-
+        public List<SpoutCameraSettings> SpoutCameras = new List<SpoutCameraSettings>();
     }
     
     public class __Settings {
@@ -102,6 +129,20 @@ namespace VNyan_FollowCam {
 
         internal static void SaveGlobal() {
             try {
+                _Settings.GlobalSettings.SpoutCameras.Clear();
+                for(int n=1; n<FollowCam.objCameras.Count; n++) { // Again, yes 1 is correct, as 0 is main camera
+                    _Settings.GlobalSettings.SpoutCameras.Add(new SpoutCameraSettings(
+                        FollowCam.objCameras[n].Wrangler.Name, 
+                        FollowCam.objCameras[n].Wrangler.SettingsFileName,
+                        FollowCam.objCameras[n].Width,
+                        FollowCam.objCameras[n].Height,
+                        FollowCam.objCameras[n].FocalLength,
+                        FollowCam.objCameras[n].ShowAvatar,
+                        FollowCam.objCameras[n].ShowCObject,
+                        FollowCam.objCameras[n].ShowWorld,
+                        FollowCam.objCameras[n].ShowSkyBox
+                    ));
+                }
                 Log($"Saving to {__GlobalSettings.SettingsFileName}");
                 File.WriteAllText(__GlobalSettings.SettingsFileName, JsonConvert.SerializeObject(_Settings.GlobalSettings, Formatting.Indented));
             } catch (Exception ex) {
@@ -116,6 +157,7 @@ namespace VNyan_FollowCam {
                     __GlobalSettings? TempSettings = JsonConvert.DeserializeObject<__GlobalSettings>(File.ReadAllText(__GlobalSettings.SettingsFileName));
                     if (TempSettings != null) {
                         _Settings.GlobalSettings = TempSettings;
+                        
                     } else {
                         Log($"Invalid settings file: {__GlobalSettings.SettingsFileName}");
                     }
@@ -126,6 +168,14 @@ namespace VNyan_FollowCam {
             } catch (Exception ex) {
                 Log(ex.ToString());
                 return false;
+            }
+        }
+
+        // internal SpoutCamera(string SettingsFileName, string SourceName, int Width = -1, int Height = -1, float FocalLength = -1, bool ShowAvatar = true, bool ShowCObject = true, bool ShowWorld = true, bool ShowSkyBox = false) {
+        internal static void CreateCamerasFromGlobal() {
+            foreach (SpoutCameraSettings SCS in _Settings.GlobalSettings.SpoutCameras) {
+                FollowCam.objCameras.Add(new SpoutCamera(SCS.SettingsFileName, SCS.Name, SCS.Width, SCS.Height, SCS.FocalLength, SCS.ShowAvatar, SCS.ShowCObjects, SCS.ShowWorld, SCS.ShowSkyBox));
+                Log($"Created Spout2 camera {SCS.Name}");
             }
         }
     }

@@ -40,7 +40,7 @@ namespace VNyan_FollowCam {
             return null;
         }
         
-        public static int AttachSpoutCamera(string CameraName, string SettingsFileName) {
+        public static int CreateSpoutCamera(string CameraName, string SettingsFileName) {
             foreach (BasicCamera ExistingCamera in objCameras) {
                 if (ExistingCamera.Wrangler.Name == CameraName) {
                     Log($"Attempted to attach to already handled Spout2 camera: {CameraName}");
@@ -50,14 +50,28 @@ namespace VNyan_FollowCam {
 
             VNyanInterface.ISpout2Camera? Camera = FindVNyanCamera(CameraName);
 
-            if (Camera != null) {
-                objCameras.Add(new SpoutCamera(Camera, SettingsFileName));
-                Log($"Attached Spout2 camera {CameraName}");
+            if (Camera == null) {
+                objCameras.Add(new SpoutCamera(SettingsFileName, CameraName));
+                Log($"Created Spout2 camera {CameraName}");
                 return objCameras.Count - 1;
+            } else {
+                Log($"Couldn't attach Spout2 camera {CameraName} as it already exists");
             }
-            Log($"Couldn't attach Spout2 camera {CameraName} as it doesn't appear to exist");
             return 0;
         }
+
+        public static int RemoveSpoutCamera(string CameraName) {
+            for (int n = 1; n < objCameras.Count; n++) { // Yes 1 is correct. 0 is always main camera, not a spout camera
+                if (objCameras[n].Wrangler.Name == CameraName) {
+                    objCameras.RemoveAt(n);
+                    Log($"Removed camera: {CameraName} at position {n}");
+                    return n;
+                }
+            }
+            Log($"Failed to remove camera: {CameraName} - Couldn't find it!");
+            return -1;
+        }
+
 
         public void Awake() {
             try {
@@ -125,7 +139,7 @@ namespace VNyan_FollowCam {
                 double TimeDelta = Now - PrevTime;
                 Log($"Called at: {Now}, {TimeDelta} since previous call",69);
                 foreach (var objCamera in objCameras) {
-                    if (objCamera.Enabled) { objCamera.DoUpdate((float)TimeDelta); }
+                    if (objCamera.Enabled) { objCamera.DoUpdate((float)TimeDelta, Now); }
                 }
                 PrevTime = Now;
             } catch (Exception ex) {
