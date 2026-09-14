@@ -32,6 +32,7 @@ namespace VNyan_FollowCam {
         new internal bool ShowWorld => true;
         new internal bool ShowSkyBox => false;
         internal GameObject DummyCamera = new GameObject();
+        ulong Sequence = 0;
 
         internal MainCamera(string SettingsFileName) {
             DummyCamera.transform.position = Camera.main.transform.position;
@@ -40,8 +41,9 @@ namespace VNyan_FollowCam {
         }
 
         internal override void DoUpdate(float DeltaTime) {
+            double Now = UnityEngine.Time.realtimeSinceStartupAsDouble;
             Wrangler.DoUpdate(DeltaTime);
-            VRnyan_Handlers.UpdateVRnyanCameraPos(Wrangler.CurrentCamera.transform.position, Wrangler.CurrentCamera.transform.rotation);
+            VRnyan_Handlers.UpdateVRnyanCameraPos(Wrangler.CurrentCamera.transform.position, Wrangler.CurrentCamera.transform.rotation, Sequence++, Now);
         }
 
         internal override void Enable() {

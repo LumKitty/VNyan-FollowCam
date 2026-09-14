@@ -16,12 +16,12 @@ namespace VNyan_FollowCam {
         //internal static bool MainFollowCamActive = false;
         internal static bool _MainFollowCamActive = false;
 
-        internal static void DummyUpdateVRnyanCameraPos(Vector3 CamPos, Quaternion CamRot) { }
+        internal static void DummyUpdateVRnyanCameraPos(Vector3 CamPos, Quaternion CamRot, ulong Squence, double Timestamp) { }
         internal static bool DummyGetVRNyanControllingCamera() { return false; }
         internal static void DummySetMainFollowCamActive(bool Active) { _MainFollowCamActive = Active; }
         internal static bool DummyGetMainFollowCamActive() { return _MainFollowCamActive; }
 
-        internal static Action<Vector3, Quaternion> UpdateVRnyanCameraPos = DummyUpdateVRnyanCameraPos;
+        internal static Action<Vector3, Quaternion, ulong, double> UpdateVRnyanCameraPos = DummyUpdateVRnyanCameraPos;
         internal static Func<bool> GetVRNyanControllingCamera = DummyGetVRNyanControllingCamera;
         internal static Action<bool> SetMainFollowCamActive = DummySetMainFollowCamActive;
         internal static Func<bool> GetMainFollowCamActive = DummyGetMainFollowCamActive;
@@ -55,7 +55,7 @@ namespace VNyan_FollowCam {
                         } else {
                             Log("Got methods - Connecting up variables&methods");
                             Log("VRnyan_GetUpdateCameraPos");
-                            UpdateVRnyanCameraPos = (Action<Vector3, Quaternion>)VRnyan_GetUpdateCameraPos?.Invoke(null, null);
+                            UpdateVRnyanCameraPos = (Action<Vector3, Quaternion, ulong, double>)VRnyan_GetUpdateCameraPos?.Invoke(null, null);
                             
                             Log("VRnyan_Get_VRNyanControllingCamera");
                             GetVRNyanControllingCamera =             (Func<bool>)VRnyan_Get_GetVRNyanControllingCamera?.Invoke(null, null);
