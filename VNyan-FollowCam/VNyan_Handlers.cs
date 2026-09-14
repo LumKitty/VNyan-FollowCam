@@ -25,6 +25,7 @@ namespace VNyan_FollowCam {
             SettingsFile.LoadGlobal();
             GUI.SetActive(false);
             FollowCam.objCameras.Add(new MainCamera(_Settings.GlobalSettings.MainCameraSettingsFile));
+            SettingsFile.CreateCamerasFromGlobal();
             //GUI.CurrentWrangler = FollowCam.objCameras[0].Wrangler;
             VNyanInterface.VNyanInterface.VNyanUI.registerPluginButton("FollowCam", this);
             VNyanInterface.VNyanInterface.VNyanTrigger.registerTriggerListener(this);

@@ -92,7 +92,11 @@ namespace VNyan_FollowCam {
                     Temp_Camera.transform.position = Persist_TrgPos;
                     // Handle movement lerp
                     if ((Persist_PrevPos - Temp_Camera.transform.position).magnitude > Persist_MinMovementThreshold) {
-                        CurrentCamera.position = Vector3.Lerp(Persist_PrevPos, Temp_Camera.transform.position, Settings.MovementLerp*DeltaTime);
+                        if (DeltaTime > 0) {
+                            CurrentCamera.position = Vector3.Lerp(Persist_PrevPos, Temp_Camera.transform.position, Settings.MovementLerp * DeltaTime);
+                        } else {
+                            CurrentCamera.position = Temp_Camera.transform.position;
+                        }
                         Persist_PrevPos = CurrentCamera.position;
                         Persist_MinMovementThreshold = Settings.MinMovementThreshold / 10;
 
@@ -125,7 +129,11 @@ namespace VNyan_FollowCam {
                     // Handle rotation slerp
                     (Persist_PrevRot * Quaternion.Inverse(Temp_Camera.transform.rotation)).ToAngleAxis(out TempFloat, out TempVector3);
                     if (TempFloat > Persist_MinRotationThreshold) {
-                        CurrentCamera.transform.rotation = Quaternion.Slerp(Persist_PrevRot, Temp_Camera.transform.rotation, Settings.RotationLerp * DeltaTime);
+                        if (DeltaTime > 0) {
+                            CurrentCamera.transform.rotation = Quaternion.Slerp(Persist_PrevRot, Temp_Camera.transform.rotation, Settings.RotationLerp * DeltaTime);
+                        } else {
+                            CurrentCamera.transform.rotation = Temp_Camera.transform.rotation;
+                        }
                         Persist_PrevRot = CurrentCamera.rotation;
                         Persist_MinRotationThreshold = Settings.MinRotationThreshold / 10;
                     } else {
