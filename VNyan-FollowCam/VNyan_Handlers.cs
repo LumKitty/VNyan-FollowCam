@@ -14,7 +14,7 @@ namespace VNyan_FollowCam {
 
     public class VNyan_Handlers : IVNyanPluginManifest, IButtonClickedHandler, ITriggerHandler {
         public string PluginName { get; } = "VNyan FollowCam";
-        public string Version { get; } = "0.8-beta";
+        public string Version { get; } = "0.9-beta";
         public string Title => PluginName + " " + Version;
         public string Author { get; } = "LumKitty";
         public string Website { get; } = "https://lum.uk/";
