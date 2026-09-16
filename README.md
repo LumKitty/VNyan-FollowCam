@@ -1,9 +1,11 @@
 ### Follow camera for VNyan
-Very early beta, here's some rough instructions
+Overrides VNyan's camera to follow you as you move around, can optionally integrate with VRnyan to allow for streaming VR games in third person
 
-Installation: Copy VNyan-FollowCam.dll to your plugin directory
+<IMG SRC="https://github.com/LumKitty/VNyan-FollowCam/blob/master/FollowCam-Demo.gif?raw=true">
 
-### Usage:
+Installation: Copy VNyan-FollowCam.dll to your VNyan\Items\Assemblies directory, ensure that VNyan is configured to allow third party plugins
+
+### Settings:
 Camera offset: 
 Where the camera should be, relative to the bone you selected, e.g. Hips + x/y/z values  
 Off = Don't do anything, use main VNyan camera position - This will create a static camera  
@@ -20,9 +22,15 @@ Off/Absolute/Relative = Same as for camera offset
 Lerp & threshold = Same as for camera offset, but specified in degrees instead of meters  
 
 Examples:
-Camera Off + Rotation Absolute will simulate a static camera following your around on stage  
+Camera Off + Rotation Absolute will simulate a static camera following you around on stage  
 Camera and rotation Relative will simulate a behind view camera like you might get in a 3rd person game  
 Camera and rotation Absolute will always have the camera looking forwards, but it can move around to stay the same distance from you
+
+Second camera support:
+Entering a name for a spout sender in the text box at the top and pressing the + button will create a second followcam which can be configured just like the main one. Use the OBS Spout2 plugin to display this
+
+VRnyan integration:
+If you have VRnyan installed the two will automatically communicate and update OnAirTap (or LIV) with FollowCam data
 
 Triggers:  
 ```_lum_followcam_enable``` - Activate the followcam  
