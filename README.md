@@ -5,8 +5,8 @@ Overrides VNyan's camera to follow you as you move around, can optionally integr
 
 Installation: Copy VNyan-FollowCam.dll to your VNyan\Items\Assemblies directory, ensure that VNyan is configured to allow third party plugins
 
-### Settings:
-Camera offset: 
+## Settings:
+###Camera offset: 
 Where the camera should be, relative to the bone you selected, e.g. Hips + x/y/z values  
 Off = Don't do anything, use main VNyan camera position - This will create a static camera  
 Absolute = Camera will follow you around, but ignore your rotation, so will always point in the same in-world direction. Probably use this for Beat Saber  
@@ -15,19 +15,20 @@ Lerp: Increasing this will make the camera move faster in response to movements
 Min threshold: Movements below this value will cause no movement at all. Use this to prevent minor hip wiggles from moving the camera  
 Static: This axis will ignore wherever the bone is and be relative to zero instead (i.e. between your feet). Recommended for the Y axis to reduce shaking
 
-Look at bone:
+###Look at bone:
 The camera will always look at the selected bone, adjusted by the x/y/z values - A common use would be to look at hips + Z:1m to give
 the impression of looking at your head, without moving the camera if you bend over  
 Off/Absolute/Relative = Same as for camera offset
 Lerp & threshold = Same as for camera offset, but specified in degrees instead of meters  
 
-Examples:
+###Examples:
 Camera Off + Rotation Absolute will simulate a static camera following you around on stage  
 Camera and rotation Relative will simulate a behind view camera like you might get in a 3rd person game  
 Camera and rotation Absolute will always have the camera looking forwards, but it can move around to stay the same distance from you
 
-Second camera support:
-Entering a name for a spout sender in the text box at the top and pressing the + button will create a second followcam which can be configured just like the main one. Use the OBS Spout2 plugin to display this
+###Second camera support:
+Entering a name for a spout sender in the text box at the top and pressing the + button will create a second followcam which can be configured just like the main one. Use the OBS Spout2 plugin to display this.
+If you need to change the second camera settings, e.g. resolution or which items to display, you will need to edit FollowCam.json inside your VNyan profile directory. Unfortunately they can't be changed at runtime.
 
 VRnyan integration:
 If you have VRnyan installed the two will automatically communicate and update OnAirTap (or LIV) with FollowCam data
